@@ -8,6 +8,8 @@ import {
   DoorOpen,
   Hotel,
   History,
+  X,
+  ChevronDown,
 } from "lucide-react";
 import { useGame } from "@/components/game-provider";
 import { GameCard } from "@/components/game-card";
@@ -138,13 +140,14 @@ export default function Hub() {
         <div className="library-heading">
           <h2 id="library-title">Find your next obsession.</h2>
           <label className="search-field">
-            <Search size={17} />
-            <input
+            <span className="search-icon"><Search size={18} /></span>
+            <span className="search-copy"><small>Search the game shelf</small><input
               aria-label="Search games"
               placeholder="Find a game…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-            />
+            /></span>
+            {search && <button type="button" className="search-clear" onClick={() => setSearch("")} aria-label="Clear search"><X size={16} /></button>}
           </label>
         </div>
         <div className="library-tools">
@@ -160,7 +163,7 @@ export default function Hub() {
               </button>
             ))}
           </div>
-          <select
+          <label className="sort-shell"><span>Sort by</span><select
             className="sort-control"
             aria-label="Sort games"
             value={sort}
@@ -169,7 +172,7 @@ export default function Hub() {
             <option value="featured">Featured first</option>
             <option value="name">Name: A–Z</option>
             <option value="players">Fewest players</option>
-          </select>
+          </select><ChevronDown size={16} /></label>
         </div>
         {filtered.length ? (
           <div className="game-grid hub-grid mystery-library">

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-test("landing navigation, honest feedback state, and responsive layouts", async ({
+test("landing navigation, email feedback, and responsive layouts", async ({
   page,
 }) => {
   await page.goto("/");
@@ -8,9 +8,7 @@ test("landing navigation, honest feedback state, and responsive layouts", async 
   );
   await page.getByRole("link", { name: "Explore games", exact: true }).click();
   await expect(page).toHaveURL(/#games$/);
-  await expect(
-    page.getByRole("button", { name: "Send your idea" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Email your idea" })).toBeEnabled();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await expect

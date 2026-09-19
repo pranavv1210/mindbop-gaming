@@ -24,6 +24,18 @@ export const games: GameInfo[] = [
     color: "violet",
     cover: "/images/games/last-guest.svg",
   },
+  {
+    id: "signal-lost", name: "Signal Lost", category: "Social deduction",
+    description: "Your research station has gone quiet. Repair the signal, read the room, and find the mimic before it finds you.",
+    min: 4, max: 8, duration: "20–30 min", status: "soon", color: "mint",
+    cover: "/images/games/signal-lost.svg",
+  },
+  {
+    id: "spellbound", name: "Spellbound", category: "Team word game",
+    description: "Build impossible spells from chaotic clues while the other team tries to break your magic.",
+    min: 3, max: 10, duration: "15–25 min", status: "soon", color: "coral",
+    cover: "/images/games/spellbound.svg",
+  },
 ];
 export const categories = [
   "All games",

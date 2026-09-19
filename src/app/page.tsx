@@ -107,7 +107,7 @@ export default function Home() {
             </Link>
           </div>
           <p className="section-intro">
-            One compact cooperative case, ready to investigate with your group.
+            Mysteries, bluffing, wordplay—and more worlds already in the works.
           </p>
           <div className="game-grid mystery-library">
             {games.map((game) => (
