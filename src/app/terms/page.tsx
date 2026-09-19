@@ -11,8 +11,9 @@ export default function Terms() {
       </p>
       <p>
         This preview is for trying the game with your friends. Features may
-        change, and rooms and scores can disappear when the server restarts.
-        There are no purchases, paid prizes, or account requirements.
+        change, and rooms and investigation progress can disappear when the
+        server restarts. There are no purchases, paid prizes, or account
+        requirements.
       </p>
       <p>
         Play kindly, choose appropriate nicknames, and don’t share sensitive

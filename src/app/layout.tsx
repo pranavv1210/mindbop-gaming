@@ -8,10 +8,11 @@ import "@fontsource/dm-sans/latin-400.css";
 import "@fontsource/dm-sans/latin-500.css";
 import "@fontsource/dm-sans/latin-600.css";
 import "./globals.css";
+import "@/games/last-guest/last-guest.css";
 export const metadata: Metadata = {
   title: "MindBop — Think fast. Play wild.",
   description:
-    "Your friends. Your games. Total chaos. Play browser-based multiplayer mind games with your crew. No downloads or accounts needed.",
+    "Your friends. Your games. Total chaos. Play cooperative browser murder mysteries with your crew. No downloads or accounts needed.",
   applicationName: "MindBop",
 };
 export default function RootLayout({

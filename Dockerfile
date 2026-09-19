@@ -13,6 +13,7 @@ COPY --from=build /app/package.json /app/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/src ./src
+COPY --from=build /app/public ./public
 COPY --from=build /app/server ./server
 COPY --from=build /app/next.config.mjs ./next.config.mjs
 COPY --from=build /app/tsconfig.json ./tsconfig.json

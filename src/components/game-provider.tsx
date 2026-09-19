@@ -27,6 +27,7 @@ type Context = {
   connectionError: string;
   send: (command: Command) => Promise<Reply>;
   retry: () => void;
+  move: (x: number, z: number) => void;
 };
 const GameContext = createContext<Context | null>(null);
 export function GameProvider({ children }: { children: React.ReactNode }) {
@@ -105,9 +106,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (player)
         saveRecent({
           gameId: room.gameId,
-          score: player.score,
+          outcome: room.game?.result?.solved ? "Case solved" : "Case reviewed",
           playedAt: Date.now(),
-          matchId: `${room.code}:${room.game?.deadline}`,
+          matchId: room.game!.runId,
         });
     }
   }, [room, id]);
@@ -150,6 +151,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         initialized,
         connectionError,
         send,
+        move: (x, z) => {
+          const socket = socketRef.current;
+          if (socket?.connected) socket.volatile.emit("move", { x, z });
+        },
         retry: () => {
           setConnectionError("");
           setGeneration((g) => g + 1);

@@ -2,10 +2,10 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Copy, Link2, Brain, Check, Play } from "lucide-react";
+import { ArrowLeft, Copy, Link2, Hotel, Check, Play } from "lucide-react";
 import { useGame } from "@/components/game-provider";
 import { RoomPlayers } from "@/components/room-players";
-import { BrainwavePlay, Results } from "@/components/brainwave-play";
+import { LastGuestGame } from "@/games/last-guest/last-guest-game";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
 export default function RoomPage({
@@ -137,17 +137,17 @@ export default function RoomPage({
           {error}
         </p>
       )}
-      <div className="room-layout">
+      <div className={room.phase === "waiting" ? "room-layout" : ""}>
         {room.phase === "waiting" ? (
           <section className="room-panel">
             <span className="room-eyebrow">
-              <Brain size={16} />
-              Brainwave lobby
+              <Hotel size={16} />
+              The Last Guest lobby
             </span>
             <h1>The crew’s getting together.</h1>
             <p>
-              Send the invite, get comfortable, and prepare to overthink a few
-              very simple questions.
+              Invite your investigators. Explore the hotel, compare evidence,
+              and agree on what happened.
             </p>
             <div className="invite-box">
               <div>
@@ -181,42 +181,27 @@ export default function RoomPage({
             <p className="toast" role="status">
               {toast}
             </p>
-            <div className="room-settings">
-              <label>
-                Number of rounds
-                <select
-                  aria-label="Number of rounds"
-                  value={room.rounds}
-                  disabled={!host || busy || !connected}
-                  onChange={(e) =>
-                    void act({
-                      type: "settings",
-                      rounds: Number(e.target.value),
-                    })
-                  }
-                >
-                  <option value={3}>3 rounds</option>
-                  <option value={5}>5 rounds</option>
-                  <option value={8}>8 rounds</option>
-                </select>
-              </label>
-              <p className="form-note">
-                20 seconds per question.
-                <br />
-                Changing rounds resets everyone’s ready state.
-              </p>
-            </div>
             <div className="rules">
-              <h3>Small questions. Big brain energy.</h3>
+              <h3>One hotel. Three suspects. One shared case.</h3>
               <ol>
-                <li>Everyone gets the same logic question at the same time.</li>
-                <li>Pick one answer before time runs out. No take-backs.</li>
                 <li>
-                  Correct answers earn 100 points. Speed doesn’t affect your
-                  score.
+                  Explore five connected hotel areas using WASD, arrows, or
+                  touch controls.
                 </li>
-                <li>The highest score wins. Ties share the crown.</li>
+                <li>
+                  Inspect objects and question suspects. Discoveries are shared
+                  automatically.
+                </li>
+                <li>Connect evidence and coordinate in the team notebook.</li>
+                <li>
+                  Submit a supported accusation with everyone’s agreement.
+                </li>
               </ol>
+              <p className="players-note">
+                Early playable milestone: one compact case, procedural 3D art,
+                no voice chat. Progress is kept during short disconnects, but
+                not server restarts.
+              </p>
             </div>
             <div className="room-actions">
               <button
@@ -250,24 +235,15 @@ export default function RoomPage({
                     : "Everyone’s ready. Your host can start the game."}
             </p>
           </section>
-        ) : room.phase === "completed" ? (
-          <Results
-            room={room}
-            host={host}
-            busy={busy}
-            connected={connected}
-            act={act}
-            leave={() => void act({ type: "leave" })}
-          />
         ) : (
-          <BrainwavePlay
+          <LastGuestGame
+            key={room.game!.runId}
             room={room}
-            act={act}
-            busy={busy}
-            connected={connected}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
           />
         )}
-        <RoomPlayers room={room} id={id} />
+        {room.phase === "waiting" && <RoomPlayers room={room} id={id} />}
       </div>
       {confirmLeave && (
         <Modal

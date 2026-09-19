@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { Brand } from "@/components/brand";
-import { Avatar, GameArt } from "@/components/art";
+import { Avatar } from "@/components/art";
 import { GameCard } from "@/components/game-card";
 import { Feedback } from "@/components/feedback";
+import { GameCover } from "@/components/game-cover";
 import { games } from "@/lib/games";
 export default function Home() {
   return (
@@ -30,10 +31,10 @@ export default function Home() {
             <h1>
               Your friends.
               <br />
-              Your games.
+              One hotel.
               <br />
               <span className="chaos-word">
-                Total chaos.
+                No easy alibis.
                 <svg viewBox="0 0 420 20" fill="none" aria-hidden="true">
                   <path
                     d="M4 13C110 2 310 2 414 9M46 18c110-8 245-9 331-4"
@@ -45,8 +46,8 @@ export default function Home() {
               </span>
             </h1>
             <p>
-              Big brain moves. Questionable decisions. Unforgettable party
-              moments. Get your people together and let the games begin.
+              Explore the Halcyon Hotel, share discoveries, and solve an
+              authored murder mystery together.
             </p>
             <div className="hero-actions">
               <Link href="/play" className="button button-primary button-large">
@@ -71,53 +72,11 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <div
-            className="hero-visual"
-            aria-label="Illustration of MindBop games"
-          >
-            <div className="hero-halo" />
-            <span className="hero-doodle doodle-one">✳</span>
-            <div className="hero-game hero-game-back">
-              <GameArt kind="cards" />
-              <span>Trust nobody.</span>
-              <strong>Bluff Club</strong>
-              <small>Coming soon</small>
-            </div>
-            <div className="hero-game hero-game-main">
-              <div className="hero-game-top">
-                <span>
-                  <Zap size={14} /> Mind games
-                </span>
-                <span>↗</span>
-              </div>
-              <GameArt kind="brain" hero />
-              <div className="hero-game-bottom">
-                <strong>Brainwave</strong>
-                <span>Small questions. Big plot twists.</span>
-                <div>
-                  <span>2–8 players</span>
-                  <span>
-                    Let’s think fast <ArrowUpRight size={14} />
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="crew-sticker">
-              <div className="avatar-stack">
-                <Avatar index={0} small />
-                <Avatar index={1} small />
-                <Avatar index={2} small />
-              </div>
-              <div>
-                <strong>Better with your people.</strong>
-                <span>You bring the crew. We bring the games.</span>
-              </div>
-            </div>
-            <span className="hero-doodle doodle-two">✧</span>
-            <div className="wild-sticker">
-              a little brainpower.
-              <br />
-              <strong>a lot of madness.</strong>
+          <div className="hero-hotel">
+            <GameCover src={games[0].cover} title={games[0].name} />
+            <div className="hero-hotel-caption">
+              <strong>The Last Guest</strong>
+              <span>2–6 investigators · Playable early case</span>
             </div>
           </div>
         </section>
@@ -148,10 +107,9 @@ export default function Home() {
             </Link>
           </div>
           <p className="section-intro">
-            A brain teaser today. A convincing lie tomorrow. There’s more fun on
-            the way.
+            One compact cooperative case, ready to investigate with your group.
           </p>
-          <div className="game-grid">
+          <div className="game-grid mystery-library">
             {games.map((game) => (
               <GameCard key={game.id} game={game} />
             ))}
@@ -174,7 +132,7 @@ export default function Home() {
                 {
                   icon: MousePointer2,
                   title: "Pick your game",
-                  text: "A little logic? A little chaos? Find your group’s next obsession.",
+                  text: "Enter The Last Guest, our first playable murder mystery.",
                 },
                 {
                   icon: PartyPopper,
@@ -188,8 +146,8 @@ export default function Home() {
                 },
                 {
                   icon: Zap,
-                  title: "Let it get competitive",
-                  text: "Think fast, laugh a little too loud, and hit rematch.",
+                  title: "Solve it together",
+                  text: "Inspect the hotel, compare evidence, and agree on a case.",
                 },
               ].map((step, i) => (
                 <article className="step" key={step.title}>
@@ -236,7 +194,7 @@ export default function Home() {
             </span>
             <h2>
               A little closer.
-              <br />A lot more competitive.
+              <br />A mystery to solve.
             </h2>
             <p>
               For the group chat that never makes plans. The team that needs a
@@ -279,7 +237,7 @@ export default function Home() {
         <div className="footer-top">
           <div>
             <Brand />
-            <p>A little brainpower. A lot of madness.</p>
+            <p>Every guest has a story.</p>
           </div>
           <nav aria-label="Footer navigation">
             <a href="#games">Games</a>

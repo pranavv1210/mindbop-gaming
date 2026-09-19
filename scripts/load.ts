@@ -81,8 +81,7 @@ async function main() {
         type: "create",
         name: `Load host ${i}`,
         avatar: 0,
-        gameId: "brainwave",
-        rounds: 3,
+        gameId: "last-guest",
       });
       await command(guest.socket, {
         type: "join",
@@ -106,19 +105,24 @@ async function main() {
         await command(host.socket, { type: "ready", ready: true });
         await command(guest.socket, { type: "ready", ready: true });
         await command(host.socket, { type: "start" });
-        for (let round = 1; round <= 3; round++) {
-          await until(
-            () =>
-              host.room?.game?.round === round &&
-              host.room.game.phase === "question" &&
-              guest.room?.game?.round === round,
-          );
-          await Promise.all([
-            command(host.socket, { type: "answer", option: 0, round }),
-            command(guest.socket, { type: "answer", option: 1, round }),
-          ]);
+        await command(host.socket, { type: "game", action: { type: "begin" } });
+        await until(() => guest.room?.game?.phase === "investigation");
+        const startX = host.room!.game!.positions[host.id].x;
+        for (let i = 0; i < 20; i++) {
+          host.socket.emit("move", { x: 1, z: 0 });
+          guest.socket.emit("move", { x: 0, z: -1 });
+          await new Promise((r) => setTimeout(r, 100));
         }
-        await until(() => host.room?.phase === "completed");
+        host.socket.emit("move", { x: 0, z: 0 });
+        guest.socket.emit("move", { x: 0, z: 0 });
+        await until(
+          () => (guest.room?.game?.positions[host.id].x ?? startX) > startX + 1,
+        );
+        await command(host.socket, {
+          type: "game",
+          action: { type: "note", text: "Investigating the hotel." },
+        });
+        await until(() => guest.room?.game?.notes.length === 1);
         await command(host.socket, { type: "leave" });
         await command(guest.socket, { type: "leave" });
       }),
@@ -147,8 +151,8 @@ async function main() {
             "join",
             "concurrent rooms",
             "reconnection",
-            "full gameplay",
-            "completion",
+            "server movement and peer synchronization",
+            "shared investigation notes",
             "explicit leave cleanup",
           ],
           healthAfter: await fetch(`${origin}/api/health`).then((r) =>

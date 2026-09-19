@@ -2,7 +2,7 @@ export type Guest = { name: string; avatar: number };
 export type Recent = {
   gameId: string;
   playedAt: number;
-  score: number;
+  outcome: string;
   matchId: string;
 };
 export function readGuest(): Guest {
@@ -43,7 +43,7 @@ export function readRecent(): Recent[] {
               r &&
               typeof r.gameId === "string" &&
               typeof r.playedAt === "number" &&
-              typeof r.score === "number" &&
+              typeof r.outcome === "string" &&
               typeof r.matchId === "string",
           )
           .slice(0, 6)

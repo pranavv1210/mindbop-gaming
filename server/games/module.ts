@@ -1,7 +1,14 @@
 import type { GameView } from "../../src/lib/protocol";
 export interface GameModule<State = unknown> {
   id: string;
-  create(rounds: number, now: number): State;
+  create(players: string[], now: number): State;
+  input?(
+    state: State,
+    playerId: string,
+    x: number,
+    z: number,
+    now: number,
+  ): void;
   act(state: State, playerId: string, action: unknown, now: number): void;
   tick(
     state: State,

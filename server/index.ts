@@ -168,16 +168,18 @@ async function main() {
       ack(result);
       broadcast();
     });
+    socket.on("move", (input) => engine.move(s, input));
     socket.on("disconnect", () => {
       engine.disconnect(s, socket.id);
       last.delete(socket.id);
       broadcast();
     });
   });
+  let frame = 0;
   const tick = setInterval(() => {
     engine.tick();
-    broadcast();
-  }, 250);
+    if (++frame % 2 === 0) broadcast();
+  }, 50);
   const cleanup = setInterval(() => {
     for (const [key, times] of attempts)
       if (Date.now() - times[times.length - 1] > 60000) attempts.delete(key);

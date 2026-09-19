@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Users, Clock3 } from "lucide-react";
 import type { GameInfo } from "@/lib/games";
-import { GameArt } from "./art";
+import { GameCover } from "./game-cover";
 export function GameCard({
   game,
   onPlay,
@@ -11,14 +11,14 @@ export function GameCard({
 }) {
   return (
     <article className={`game-card game-${game.color}`}>
-      <div className="game-card-art">
-        <GameArt kind={game.symbol} />
+      <div className="game-card-art mystery-cover">
+        <GameCover src={game.cover} title={game.name} />
         <span
           className={`status-pill ${game.status === "playable" ? "available" : ""}`}
         >
           {game.status === "playable" ? (
             <>
-              <i /> Ready to play
+              <i /> Playable early case
             </>
           ) : (
             "Coming soon"
@@ -45,7 +45,7 @@ export function GameCard({
               Create a room <ArrowUpRight size={18} />
             </button>
           ) : (
-            <Link href="/play?game=brainwave" className="card-link">
+            <Link href={`/play?game=${game.id}`} className="card-link">
               Let’s play <ArrowUpRight size={18} />
             </Link>
           )

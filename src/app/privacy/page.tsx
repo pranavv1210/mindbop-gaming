@@ -14,8 +14,9 @@ export default function Privacy() {
       <p>
         Your browser stores your nickname, avatar preference, and recent
         completed games locally. An HTTP-only session cookie identifies your
-        connection to the game server. Rooms, player names, answers, and scores
-        stay in server memory and are lost when it restarts.
+        connection to the game server. Rooms, player names, positions, shared
+        notes, and investigation progress stay in server memory and are lost
+        when it restarts.
       </p>
       <p>
         Inactive rooms expire after an hour. Disconnected players are removed

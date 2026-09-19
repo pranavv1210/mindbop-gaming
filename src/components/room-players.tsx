@@ -1,11 +1,16 @@
 import { Crown } from "lucide-react";
 import type { RoomView } from "@/lib/protocol";
+import { games } from "@/lib/games";
 import { Avatar } from "./art";
 export function RoomPlayers({ room, id }: { room: RoomView; id: string }) {
   return (
     <aside className="players-panel">
       <h2>
-        Your crew <span>{room.players.length}/8 players</span>
+        Your crew{" "}
+        <span>
+          {room.players.length}/{games.find((g) => g.id === room.gameId)?.max}{" "}
+          players
+        </span>
       </h2>
       <div>
         {room.players.map((p) => (
@@ -31,7 +36,7 @@ export function RoomPlayers({ room, id }: { room: RoomView; id: string }) {
               {!p.connected
                 ? "Offline"
                 : room.phase !== "waiting"
-                  ? `${p.score} pts`
+                  ? "Investigating"
                   : p.ready
                     ? "✓ Ready"
                     : "Not ready"}
@@ -42,7 +47,7 @@ export function RoomPlayers({ room, id }: { room: RoomView; id: string }) {
       <p className="players-note">
         {room.phase === "waiting"
           ? "The host can start once everyone is ready. Share the invite link to get your people in here."
-          : "Every correct answer earns 100 points. The highest score wins; equal scores share the win."}
+          : "All evidence and notes are shared. Build the case together."}
       </p>
       <p className="players-note">
         Disconnected players have 2 minutes to return. Hosting passes to a

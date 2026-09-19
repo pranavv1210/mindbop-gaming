@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Player, Reply, RoomView } from "../src/lib/protocol";
 import { games } from "../src/lib/games";
 import { modules } from "./games/registry";
+import { caseActionSchema } from "./games/last-guest/module";
 
 const name = z
   .string()
@@ -10,14 +11,12 @@ const name = z
   .min(1)
   .max(24)
   .refine((s) => !/[\u0000-\u001f\u007f]/.test(s));
-const rounds = z.union([z.literal(3), z.literal(5), z.literal(8)]);
 const commandSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("create"),
     name,
     avatar: z.number().int().min(0).max(5),
     gameId: z.string().max(40),
-    rounds,
   }),
   z.object({
     type: z.literal("join"),
@@ -26,15 +25,10 @@ const commandSchema = z.discriminatedUnion("type", [
     code: z.string().regex(/^[A-Z2-9]{6}$/),
   }),
   z.object({ type: z.literal("ready"), ready: z.boolean() }),
-  z.object({ type: z.literal("settings"), rounds }),
   z.object({ type: z.literal("start") }),
   z.object({ type: z.literal("rematch") }),
   z.object({ type: z.literal("leave") }),
-  z.object({
-    type: z.literal("answer"),
-    option: z.number().int().min(0).max(3),
-    round: z.number().int().positive(),
-  }),
+  z.object({ type: z.literal("game"), action: caseActionSchema }),
 ]);
 const envelopeSchema = z.object({
   id: z.string().uuid(),
@@ -47,7 +41,6 @@ type Room = {
   hostId: string;
   players: Member[];
   phase: RoomView["phase"];
-  rounds: number;
   createdAt: number;
   updatedAt: number;
   state: unknown;
@@ -60,6 +53,7 @@ export type Session = {
   lastSeen: number;
   actions: Map<string, Reply>;
   rate: number[];
+  lastMove?: number;
 };
 export class Engine {
   rooms = new Map<string, Room>();
@@ -164,7 +158,6 @@ export class Engine {
             hostId: s.id,
             players: [],
             phase: "waiting",
-            rounds: c.rounds,
             createdAt: this.now(),
             updatedAt: this.now(),
             state: null,
@@ -192,7 +185,6 @@ export class Engine {
           avatar: c.avatar,
           connected: true,
           ready: false,
-          score: 0,
         });
         room.updatedAt = this.now();
         s.room = room.code;
@@ -207,21 +199,9 @@ export class Engine {
         if (!p || !p.connected)
           throw new Error("Reconnect to your room first.");
         const mod = modules.get(room.gameId)!;
-        if (
-          c.type === "settings" ||
-          c.type === "start" ||
-          c.type === "rematch"
-        ) {
+        if (c.type === "start" || c.type === "rematch") {
           if (room.hostId !== s.id)
             throw new Error("Only the host can do that.");
-        }
-        if (c.type === "settings") {
-          if (room.phase !== "waiting")
-            throw new Error("Settings are locked during a game.");
-          room.rounds = c.rounds;
-          room.players.forEach((p) => {
-            p.ready = false;
-          });
         }
         if (c.type === "ready") {
           if (room.phase !== "waiting")
@@ -238,13 +218,23 @@ export class Engine {
             throw new Error("You need at least 2 connected players.");
           if (room.players.some((p) => !p.connected || !p.ready))
             throw new Error("Everyone needs to be connected and ready.");
-          room.state = mod.create(room.rounds, this.now());
+          room.state = mod.create(
+            room.players.map((p) => p.id),
+            this.now(),
+          );
           room.phase = "playing";
         }
-        if (c.type === "answer") {
+        if (c.type === "game") {
           if (room.phase !== "playing")
-            throw new Error("There is no question to answer yet.");
-          mod.act(room.state, s.id, c, this.now());
+            throw new Error("Start the case before investigating.");
+          if (c.action.type === "begin" && room.hostId !== s.id)
+            throw new Error("Only the host can begin the investigation.");
+          mod.tick(
+            room.state,
+            room.players.filter((p) => p.connected).map((p) => p.id),
+            this.now(),
+          );
+          mod.act(room.state, s.id, c.action, this.now());
         }
         if (c.type === "rematch") {
           if (room.phase !== "completed")
@@ -252,7 +242,6 @@ export class Engine {
           room.phase = "waiting";
           room.state = null;
           room.players.forEach((p) => {
-            p.score = 0;
             p.ready = false;
           });
         }
@@ -271,6 +260,29 @@ export class Engine {
     s.actions.set(id, result);
     if (s.actions.size > 100) s.actions.delete(s.actions.keys().next().value!);
     return result;
+  }
+  move(s: Session, raw: unknown) {
+    const input = z
+      .object({
+        x: z.number().finite().min(-1).max(1),
+        z: z.number().finite().min(-1).max(1),
+      })
+      .safeParse(raw);
+    if (!input.success) return;
+    const stopping = input.data.x === 0 && input.data.z === 0;
+    if (!stopping && this.now() - (s.lastMove ?? -100) < 40) return;
+    s.lastMove = this.now();
+    const room = this.rooms.get(s.room ?? "");
+    if (
+      !room ||
+      room.phase !== "playing" ||
+      !room.players.some((p) => p.id === s.id && p.connected)
+    )
+      return;
+    modules
+      .get(room.gameId)!
+      .input?.(room.state, s.id, input.data.x, input.data.z, this.now());
+    room.updatedAt = this.now();
   }
   tick() {
     for (const room of this.rooms.values()) {
@@ -292,12 +304,11 @@ export class Engine {
       }
       if (room.phase === "playing") {
         const mod = modules.get(room.gameId)!;
-        const scores = mod.tick(
+        mod.tick(
           room.state,
-          room.players.map((p) => p.id),
+          room.players.filter((p) => p.connected).map((p) => p.id),
           this.now(),
         );
-        if (scores) for (const p of room.players) p.score += scores[p.id] ?? 0;
         if (mod.finished(room.state)) room.phase = "completed";
       }
     }
@@ -313,7 +324,6 @@ export class Engine {
       gameId: r.gameId,
       hostId: r.hostId,
       phase: r.phase,
-      rounds: r.rounds,
       createdAt: r.createdAt,
       players: r.players.map((p) => ({
         id: p.id,
@@ -321,7 +331,6 @@ export class Engine {
         avatar: p.avatar,
         connected: p.connected,
         ready: p.ready,
-        score: p.score,
       })),
       game: r.state ? modules.get(r.gameId)!.project(r.state, s.id) : null,
       serverTime: this.now(),

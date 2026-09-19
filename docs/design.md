@@ -2,28 +2,29 @@
 
 ## Direction
 
-A warm, social game night with a mischievous edge. The main visual is a pair of oversized illustrated game cards. This communicates what people can play without fabricating an active lobby, testimonials, or player counts.
+MindBop now centers on a cooperative night-time investigation. The public entry point uses the original Last Guest cover; the playable room shifts into a dark navy hotel interface with warm brass, cream, muted violet, and restrained green feedback. No fictional active-lobby counts, testimonials, or unavailable game cards are shown.
 
-## Tokens
+Plus Jakarta Sans carries the wordmark and headings. DM Sans carries case text, evidence, forms, and controls. Both fonts are packaged locally.
 
-| Role | Value |
-| --- | --- |
-| Brand violet | `#7657FF` |
-| Deep ink | `#211D35` |
-| Warm paper | `#F8F7FC` |
-| Coral | `#FF8B83` |
-| Mint | `#A9E8CB` |
-| Yellow | `#FFDC81` |
+## Play space
 
-Plus Jakarta Sans carries the wordmark, headings, and game titles. DM Sans carries descriptions, forms, and gameplay controls. Both are packaged and served locally.
+The hotel is a fixed cutaway view on desktop and follows the local investigator on narrow screens. Five color-coded rooms share one physical map. Low walls preserve sight lines; gold rings identify evidence, violet rings identify suspects, and green rings identify collected evidence. Labels, the objective strip, area chip, evidence details and interview transcripts carry information that color or 3D geometry alone cannot.
 
-The landing hero is left-aligned on desktop with game art on the right; mobile stacks and centers the introduction. Browsing uses a four-column desktop/two-column mobile library. Gameplay becomes a single-column question-and-answer interface on mobile, with the player list below it. Spacing, surfaces, typography, and controls are defined in `src/app/globals.css`.
+Desktop places the hotel beside a 360 px investigation panel. Mobile stacks the hotel, touch controls, tabs and content. The direction pad uses at least 44 px targets at phone widths. Reduced graphics lowers resolution and render frequency; canvases pause while a player reads another investigation panel and resume on Inspect. Reduced-motion preferences continue to suppress decorative page motion.
 
-The sticky navigation and small crew illustration use restrained translucency. Main content uses opaque, readable surfaces. Motion is limited to an initial hero entrance, user-triggered dialog transitions, and button feedback. Reduced-motion preferences disable decorative movement.
+The interface separates four tasks:
+
+1. **Inspect** — nearby objects and suspect questions, gated by real position.
+2. **Evidence** — discoveries, interview notes and supported clue connections.
+3. **Case** — required progress, accusation form and group vote.
+4. **Team** — connected roster and shared text notes.
+
+The reveal states whether the submitted case was proven, then provides the actual culprit, method, motive, timeline, explanation and missed clues. The replay limitation is visible: the current milestone contains one fixed authored case.
 
 ## Engineering choices
 
-- Next.js App Router, React, and TypeScript; shared CSS tokens instead of a separate component framework.
-- A custom long-running Node server shares a single origin between Next.js and Socket.IO. This follows the integration shape in the [Next.js custom-server guide](https://nextjs.org/docs/app/guides/custom-server). Hosting must support persistent WebSocket connections.
-- Socket.IO handles transport/reconnect attempts. Application sessions, room reattachment, permissions, and host transfer live in the engine, so a new socket does not become a duplicate player.
-- One complete launch game establishes the module boundary. Bluff Club, Odd One In, and Hot Take remain explicitly unavailable until their rules and full loops are implemented and tested.
+- Next.js App Router, React and TypeScript; Babylon.js is lazy-loaded only inside active game rooms.
+- One long-running Node server shares an origin between Next.js and Socket.IO and requires persistent WebSocket support.
+- Public geometry/types are shared. Evidence text, prerequisites and the solution remain in the server-only case module.
+- The browser sends direction vectors. The server owns elapsed movement, collisions, proximity, progression and resolution.
+- Original procedural geometry and repository-owned SVG art avoid an asset-service dependency for this milestone.

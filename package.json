@@ -13,6 +13,7 @@
     "test:load": "tsx scripts/load.ts"
   },
   "dependencies": {
+    "@babylonjs/core": "^9.27.1",
     "@fontsource/dm-sans": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@next/env": "^16.3.5",

@@ -6,7 +6,7 @@ import {
   Search,
   Plus,
   DoorOpen,
-  Brain,
+  Hotel,
   History,
 } from "lucide-react";
 import { useGame } from "@/components/game-provider";
@@ -39,7 +39,7 @@ export default function Hub() {
           .slice(0, 6),
       );
       setModal("join");
-    } else if (params.get("game") === "brainwave") setModal("create");
+    } else if (params.get("game") === "last-guest") setModal("create");
   }, []);
   useEffect(() => {
     if (room) router.replace(`/play/room/${room.code}`);
@@ -53,14 +53,12 @@ export default function Hub() {
     if (!guest || busy) return;
     setBusy(true);
     setError("");
-    const data = new FormData(e.currentTarget);
     const result = await send(
       modal === "create"
         ? {
             type: "create",
             ...guest,
-            gameId: "brainwave",
-            rounds: Number(data.get("rounds")),
+            gameId: "last-guest",
           }
         : { type: "join", ...guest, code: code.toUpperCase() },
     );
@@ -92,10 +90,10 @@ export default function Hub() {
         <div>
           <h1>
             {guest
-              ? `Ready to make some moves, ${guest.name}?`
-              : "Your next game night starts here."}
+              ? `Ready to uncover something strange, ${guest.name}?`
+              : "Your next mystery starts here."}
           </h1>
-          <p>Pick a game, gather your crew, and see what happens.</p>
+          <p>Gather your group and investigate the Halcyon Hotel.</p>
         </div>
         <span className={`connection ${connected ? "" : "offline"}`}>
           <i />
@@ -174,7 +172,7 @@ export default function Hub() {
           </select>
         </div>
         {filtered.length ? (
-          <div className="game-grid hub-grid">
+          <div className="game-grid hub-grid mystery-library">
             {filtered.map((g) => (
               <GameCard key={g.id} game={g} onPlay={() => open("create")} />
             ))}
@@ -197,7 +195,7 @@ export default function Hub() {
         )}
       </section>
       <section className="recent-section">
-        <h2>One more round?</h2>
+        <h2>Recent investigations</h2>
         {recent.length ? (
           recent.map((r) => (
             <div className="recent-row" key={r.matchId}>
@@ -207,7 +205,7 @@ export default function Hub() {
                   {games.find((g) => g.id === r.gameId)?.name ?? "Game"}
                 </strong>
                 <p>
-                  {r.score} points · {new Date(r.playedAt).toLocaleDateString()}
+                  {r.outcome} · {new Date(r.playedAt).toLocaleDateString()}
                 </p>
               </div>
               <button
@@ -232,7 +230,7 @@ export default function Hub() {
           }
           description={
             modal === "create"
-              ? "Start with Brainwave, our fast-thinking logic game. Invite 1–7 friends to join you."
+              ? "Create a real room for The Last Guest. Invite 1–5 friends to investigate together."
               : "Enter the 6-character room code from your host."
           }
           close={() => {
@@ -243,20 +241,12 @@ export default function Hub() {
             {modal === "create" ? (
               <>
                 <div className="selected-game">
-                  <Brain size={32} />
+                  <Hotel size={32} />
                   <div>
-                    <strong>Brainwave</strong>
-                    <p>2–8 players · 20 seconds per question</p>
+                    <strong>The Last Guest</strong>
+                    <p>2–6 investigators · One authored case</p>
                   </div>
                 </div>
-                <label>
-                  Number of rounds
-                  <select name="rounds" defaultValue="5">
-                    <option value="3">3 rounds · a quick warm-up</option>
-                    <option value="5">5 rounds · the classic</option>
-                    <option value="8">8 rounds · settle the score</option>
-                  </select>
-                </label>
               </>
             ) : (
               <label>

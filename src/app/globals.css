@@ -171,6 +171,7 @@ svg {
 .skip-link {
   position: fixed;
   top: -60px;
+  clip-path: inset(50%);
   left: 16px;
   background: white;
   padding: 12px;
@@ -178,6 +179,7 @@ svg {
 }
 .skip-link:focus-visible {
   top: 8px;
+  clip-path: none;
 }
 .site-header {
   position: sticky;
