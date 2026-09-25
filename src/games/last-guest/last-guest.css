@@ -624,9 +624,6 @@
   border-color: #536174;
   background: #293647;
 }
-.mystery-library {
-  grid-template-columns: minmax(0, 480px);
-}
 .mystery-cover {
   aspect-ratio: 16/9;
   height: auto !important;
@@ -737,9 +734,6 @@
   .case-reveal {
     padding: 28px;
   }
-  .mystery-library {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 @media (max-width: 600px) {
   .last-guest {
@@ -816,17 +810,8 @@
   .case-caption {
     font-size: 11px !important;
   }
-  .mystery-library .game-card-body {
-    padding: 20px;
-  }
-  .mystery-library .game-meta {
-    flex-direction: row;
-  }
   .hero-hotel {
     margin: 18px 5px 0;
     aspect-ratio: 16/11;
-  }
-  .game-grid:has(.mystery-cover) {
-    grid-template-columns: minmax(0, 480px);
   }
 }

@@ -92,10 +92,10 @@ export default function Hub() {
         <div>
           <h1>
             {guest
-              ? `Ready to uncover something strange, ${guest.name}?`
-              : "Your next mystery starts here."}
+              ? `What are we playing, ${guest.name}?`
+              : "Pick a game. Bring your people."}
           </h1>
-          <p>Gather your group and investigate the Halcyon Hotel.</p>
+          <p>Private multiplayer rooms for friends, wherever they are.</p>
         </div>
         <span className={`connection ${connected ? "" : "offline"}`}>
           <i />
@@ -116,8 +116,8 @@ export default function Hub() {
       )}
       <section className="hub-banner">
         <div>
-          <h2>A room full of possibilities.</h2>
-          <p>One link brings everyone together. The rest is up to you.</p>
+          <h2>Your group is the main event.</h2>
+          <p>Create a private room or enter the code a friend sent you.</p>
         </div>
         <div className="banner-actions">
           <button
@@ -138,16 +138,30 @@ export default function Hub() {
       </section>
       <section aria-labelledby="library-title">
         <div className="library-heading">
-          <h2 id="library-title">Find your next obsession.</h2>
+          <h2 id="library-title">Browse the game shelf.</h2>
           <label className="search-field">
-            <span className="search-icon"><Search size={18} /></span>
-            <span className="search-copy"><small>Search the game shelf</small><input
-              aria-label="Search games"
-              placeholder="Find a game…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            /></span>
-            {search && <button type="button" className="search-clear" onClick={() => setSearch("")} aria-label="Clear search"><X size={16} /></button>}
+            <span className="search-icon">
+              <Search size={18} />
+            </span>
+            <span className="search-copy">
+              <small>Search the game shelf</small>
+              <input
+                aria-label="Search games"
+                placeholder="Find a game…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </span>
+            {search && (
+              <button
+                type="button"
+                className="search-clear"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+              >
+                <X size={16} />
+              </button>
+            )}
           </label>
         </div>
         <div className="library-tools">
@@ -163,19 +177,23 @@ export default function Hub() {
               </button>
             ))}
           </div>
-          <label className="sort-shell"><span>Sort by</span><select
-            className="sort-control"
-            aria-label="Sort games"
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-          >
-            <option value="featured">Featured first</option>
-            <option value="name">Name: A–Z</option>
-            <option value="players">Fewest players</option>
-          </select><ChevronDown size={16} /></label>
+          <label className="sort-shell">
+            <span>Sort by</span>
+            <select
+              className="sort-control"
+              aria-label="Sort games"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="featured">Featured first</option>
+              <option value="name">Name: A–Z</option>
+              <option value="players">Fewest players</option>
+            </select>
+            <ChevronDown size={16} />
+          </label>
         </div>
         {filtered.length ? (
-          <div className="game-grid hub-grid mystery-library">
+          <div className="game-grid hub-grid catalog-grid">
             {filtered.map((g) => (
               <GameCard key={g.id} game={g} onPlay={() => open("create")} />
             ))}
@@ -198,7 +216,7 @@ export default function Hub() {
         )}
       </section>
       <section className="recent-section">
-        <h2>Recent investigations</h2>
+        <h2>Recently played</h2>
         {recent.length ? (
           recent.map((r) => (
             <div className="recent-row" key={r.matchId}>

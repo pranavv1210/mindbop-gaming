@@ -18,10 +18,32 @@ import { Feedback } from "@/components/feedback";
 import { GameCover } from "@/components/game-cover";
 import { games } from "@/lib/games";
 export default function Home() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "MindBop",
+    description: "Multiplayer browser games made for groups of friends.",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    hasPart: games.map((game) => ({
+      "@type": "VideoGame",
+      name: game.name,
+      description: game.description,
+      gamePlatform: "Web browser",
+      numberOfPlayers: {
+        "@type": "QuantitativeValue",
+        minValue: game.min,
+        maxValue: game.max,
+      },
+    })),
+  };
   return (
     <>
       <Header />
       <main id="main">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         <section className="hero container">
           <div className="hero-copy">
             <div className="hero-note">
@@ -29,12 +51,12 @@ export default function Home() {
               away
             </div>
             <h1>
-              Your friends.
+              Multiplayer games.
               <br />
-              One hotel.
+              Your favorite people.
               <br />
               <span className="chaos-word">
-                No easy alibis.
+                One room code.
                 <svg viewBox="0 0 420 20" fill="none" aria-hidden="true">
                   <path
                     d="M4 13C110 2 310 2 414 9M46 18c110-8 245-9 331-4"
@@ -46,8 +68,9 @@ export default function Home() {
               </span>
             </h1>
             <p>
-              Explore the Halcyon Hotel, share discoveries, and solve an
-              authored murder mystery together.
+              Open a game, create a private room, and send the code. MindBop is
+              building mysteries, bluffing games, word games, and more ways to
+              play together.
             </p>
             <div className="hero-actions">
               <Link href="/play" className="button button-primary button-large">
@@ -72,12 +95,22 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <div className="hero-hotel">
-            <GameCover src={games[0].cover} title={games[0].name} />
-            <div className="hero-hotel-caption">
-              <strong>The Last Guest</strong>
-              <span>2–6 investigators · Playable early case</span>
-            </div>
+          <div className="hero-shelf" aria-label="MindBop game shelf">
+            {games.map((game, index) => (
+              <article
+                className={`hero-shelf-card shelf-card-${index + 1}`}
+                key={game.id}
+              >
+                <GameCover src={game.cover} title={game.name} />
+                <div>
+                  <strong>{game.name}</strong>
+                  <span>
+                    {game.status === "playable" ? "Play now" : "In development"}
+                  </span>
+                </div>
+              </article>
+            ))}
+            <p>Three worlds. One growing game shelf.</p>
           </div>
         </section>
         <div className="marquee" aria-hidden="true">
@@ -109,7 +142,7 @@ export default function Home() {
           <p className="section-intro">
             Mysteries, bluffing, wordplay—and more worlds already in the works.
           </p>
-          <div className="game-grid mystery-library">
+          <div className="game-grid catalog-grid">
             {games.map((game) => (
               <GameCard key={game.id} game={game} />
             ))}
@@ -132,7 +165,7 @@ export default function Home() {
                 {
                   icon: MousePointer2,
                   title: "Pick your game",
-                  text: "Enter The Last Guest, our first playable murder mystery.",
+                  text: "Choose from mysteries, social deduction, word games, and more as the shelf grows.",
                 },
                 {
                   icon: PartyPopper,
@@ -147,7 +180,7 @@ export default function Home() {
                 {
                   icon: Zap,
                   title: "Solve it together",
-                  text: "Inspect the hotel, compare evidence, and agree on a case.",
+                  text: "Cooperate, compete, bluff, investigate, and queue up the next game.",
                 },
               ].map((step, i) => (
                 <article className="step" key={step.title}>
@@ -194,7 +227,7 @@ export default function Home() {
             </span>
             <h2>
               A little closer.
-              <br />A mystery to solve.
+              <br />A lot more to play.
             </h2>
             <p>
               For the group chat that never makes plans. The team that needs a
@@ -213,6 +246,41 @@ export default function Home() {
             <Link href="/play" className="text-link">
               Bring everyone together <ArrowUpRight size={18} />
             </Link>
+          </div>
+        </section>
+        <section className="creator-section container" id="developers">
+          <div className="creator-copy">
+            <span className="section-kicker">
+              <Globe2 size={17} /> A bigger shelf needs more makers
+            </span>
+            <h2>Built a multiplayer web game?</h2>
+            <p>
+              MindBop can publish first-party games and properly licensed games
+              from independent developers. Every submission needs clear
+              ownership, browser-ready code, and permission to distribute it.
+            </p>
+            <Link href="/developers" className="button button-dark">
+              Read the developer guide <ArrowUpRight size={18} />
+            </Link>
+          </div>
+          <div
+            className="creator-checklist"
+            aria-label="Game submission checklist"
+          >
+            <strong>What we can review</strong>
+            <span>
+              <Check size={17} /> HTML5/WebGL games you own
+            </span>
+            <span>
+              <Check size={17} /> Open-source games with compatible licenses
+            </span>
+            <span>
+              <Check size={17} /> Embeds approved by the publisher
+            </span>
+            <small>
+              We do not copy, rehost, or frame a game without the creator’s
+              written permission.
+            </small>
           </div>
         </section>
         <Feedback />
@@ -237,12 +305,13 @@ export default function Home() {
         <div className="footer-top">
           <div>
             <Brand />
-            <p>Every guest has a story.</p>
+            <p>Games made for the group chat.</p>
           </div>
           <nav aria-label="Footer navigation">
             <a href="#games">Games</a>
             <a href="#how-it-works">How it works</a>
             <a href="#feedback">Feedback</a>
+            <Link href="/developers">For developers</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
           </nav>

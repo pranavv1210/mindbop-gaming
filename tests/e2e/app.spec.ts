@@ -4,11 +4,25 @@ test("landing navigation, email feedback, and responsive layouts", async ({
 }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Your friends.",
+    "Multiplayer games.",
   );
+  await expect(page.locator("#games .game-card")).toHaveCount(3);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect
+    .poll(() =>
+      page
+        .locator("#games .game-grid")
+        .evaluate(
+          (element) =>
+            getComputedStyle(element).gridTemplateColumns.split(" ").length,
+        ),
+    )
+    .toBe(3);
   await page.getByRole("link", { name: "Explore games", exact: true }).click();
   await expect(page).toHaveURL(/#games$/);
-  await expect(page.getByRole("button", { name: "Email your idea" })).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Email your idea" }),
+  ).toBeEnabled();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await expect

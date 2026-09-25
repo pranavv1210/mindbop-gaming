@@ -18,7 +18,7 @@ export function GameCard({
         >
           {game.status === "playable" ? (
             <>
-              <i /> Playable early case
+              <i /> Play now
             </>
           ) : (
             "Coming soon"
@@ -50,7 +50,7 @@ export function GameCard({
             </Link>
           )
         ) : (
-          <span className="card-soon">A little more time in the lab.</span>
+          <span className="card-soon">In development</span>
         )}
       </div>
     </article>
