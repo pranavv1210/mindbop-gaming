@@ -79,6 +79,10 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.setViewportSize({ width: 320, height: 700 });
+  const searchBox = await page.locator(".search-field").boundingBox();
+  const sortBox = await page.locator(".sort-shell").boundingBox();
+  expect(searchBox?.height).toBeLessThanOrEqual(56);
+  expect(sortBox?.height).toBeLessThanOrEqual(52);
   await expect
     .poll(() =>
       page.evaluate(
