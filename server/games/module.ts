@@ -1,5 +1,5 @@
 import type { GameView } from "../../src/lib/protocol";
-export interface GameModule<State = unknown> {
+export interface GameModule<State = unknown, View extends GameView = GameView> {
   id: string;
   create(players: string[], now: number): State;
   input?(
@@ -16,5 +16,5 @@ export interface GameModule<State = unknown> {
     now: number,
   ): Record<string, number> | null;
   finished(state: State): boolean;
-  project(state: State, playerId: string): GameView;
+  project(state: State, playerId: string): View;
 }

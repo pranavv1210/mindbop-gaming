@@ -69,8 +69,8 @@ export default function Home() {
             </h1>
             <p>
               Open a game, create a private room, and send the code. MindBop is
-              building mysteries, bluffing games, word games, and more ways to
-              play together.
+              bringing familiar classics online with fast private rooms and
+              original, polished visuals built for playing together.
             </p>
             <div className="hero-actions">
               <Link href="/play" className="button button-primary button-large">
@@ -96,7 +96,7 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-shelf" aria-label="MindBop game shelf">
-            {games.map((game, index) => (
+            {games.slice(0, 3).map((game, index) => (
               <article
                 className={`hero-shelf-card shelf-card-${index + 1}`}
                 key={game.id}
@@ -110,7 +110,7 @@ export default function Home() {
                 </div>
               </article>
             ))}
-            <p>Three worlds. One growing game shelf.</p>
+            <p>Three games live. Two more on the way.</p>
           </div>
         </section>
         <div className="marquee" aria-hidden="true">
@@ -140,7 +140,7 @@ export default function Home() {
             </Link>
           </div>
           <p className="section-intro">
-            Mysteries, bluffing, wordplay—and more worlds already in the works.
+            Familiar games, instant private rooms, and no downloads or accounts.
           </p>
           <div className="game-grid catalog-grid">
             {games.map((game) => (
@@ -165,7 +165,7 @@ export default function Home() {
                 {
                   icon: MousePointer2,
                   title: "Pick your game",
-                  text: "Choose from mysteries, social deduction, word games, and more as the shelf grows.",
+                  text: "Choose a familiar classic and jump straight into a private match.",
                 },
                 {
                   icon: PartyPopper,
@@ -179,8 +179,8 @@ export default function Home() {
                 },
                 {
                   icon: Zap,
-                  title: "Solve it together",
-                  text: "Cooperate, compete, bluff, investigate, and queue up the next game.",
+                  title: "Play for the win",
+                  text: "Take your turn, read your rival, and run it back when the round ends.",
                 },
               ].map((step, i) => (
                 <article className="step" key={step.title}>

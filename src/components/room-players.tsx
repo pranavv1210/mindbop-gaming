@@ -36,7 +36,7 @@ export function RoomPlayers({ room, id }: { room: RoomView; id: string }) {
               {!p.connected
                 ? "Offline"
                 : room.phase !== "waiting"
-                  ? "Investigating"
+                  ? "Playing"
                   : p.ready
                     ? "✓ Ready"
                     : "Not ready"}
@@ -47,7 +47,7 @@ export function RoomPlayers({ room, id }: { room: RoomView; id: string }) {
       <p className="players-note">
         {room.phase === "waiting"
           ? "The host can start once everyone is ready. Share the invite link to get your people in here."
-          : "All evidence and notes are shared. Build the case together."}
+          : "The match is live. Watch the board and take your turn."}
       </p>
       <p className="players-note">
         Disconnected players have 2 minutes to return. Hosting passes to a

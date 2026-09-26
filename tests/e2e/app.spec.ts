@@ -6,7 +6,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Multiplayer games.",
   );
-  await expect(page.locator("#games .game-card")).toHaveCount(3);
+  await expect(page.locator("#games .game-card")).toHaveCount(5);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect
     .poll(() =>
@@ -62,10 +62,10 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
   await expect(page.getByText("No games found.")).toBeVisible();
   await page.getByRole("button", { name: "Clear filters" }).click();
   await page
-    .getByRole("button", { name: "Cooperative murder mystery", exact: true })
+    .getByRole("button", { name: "Quick strategy", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "The Last Guest", exact: true }),
+    page.getByRole("heading", { name: "Four in a Row", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Join room", exact: true }).click();
   await page.getByLabel("Room code", { exact: true }).fill("AAAAAA");

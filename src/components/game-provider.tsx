@@ -21,7 +21,9 @@ type Context = {
   guest: Guest | null;
   updateGuest: (guest: Guest) => void;
   id: string;
-  room: RoomView | null;
+  // Game screens narrow the registry-provided view using `game.kind`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  room: RoomView<any> | null;
   connected: boolean;
   initialized: boolean;
   connectionError: string;
@@ -33,7 +35,8 @@ const GameContext = createContext<Context | null>(null);
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [guest, setGuest] = useState<Guest | null>(null);
   const [id, setId] = useState("");
-  const [room, setRoom] = useState<RoomView | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [room, setRoom] = useState<RoomView<any> | null>(null);
   const [connected, setConnected] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [connectionError, setConnectionError] = useState("");
@@ -103,13 +106,32 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (room?.phase === "completed") {
       const player = room.players.find((p) => p.id === id);
-      if (player)
+      if (player) {
+        const outcome =
+          room.game?.kind === "four-row"
+            ? room.game.draw
+              ? "Draw"
+              : room.game.winner === id
+                ? "Won"
+                : "Lost"
+            : room.game?.kind === "word-chain"
+              ? room.game.winner === id
+                ? "Won"
+                : "Finished"
+              : room.game?.kind === "quiz-rush"
+                ? room.game.winnerIds.includes(id)
+                  ? "Won"
+                  : "Finished"
+                : room.game?.result?.solved
+                  ? "Case solved"
+                  : "Case reviewed";
         saveRecent({
           gameId: room.gameId,
-          outcome: room.game?.result?.solved ? "Case solved" : "Case reviewed",
+          outcome,
           playedAt: Date.now(),
           matchId: room.game!.runId,
         });
+      }
     }
   }, [room, id]);
   const send = useCallback(async (command: Command): Promise<Reply> => {

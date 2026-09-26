@@ -4,6 +4,9 @@ import type { Player, Reply, RoomView } from "../src/lib/protocol";
 import { games } from "../src/lib/games";
 import { modules } from "./games/registry";
 import { caseActionSchema } from "./games/last-guest/module";
+import { fourRowActionSchema } from "./games/four-row/module";
+import { wordChainActionSchema } from "./games/word-chain/module";
+import { quizRushActionSchema } from "./games/quiz-rush/module";
 
 const name = z
   .string()
@@ -28,7 +31,15 @@ const commandSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("start") }),
   z.object({ type: z.literal("rematch") }),
   z.object({ type: z.literal("leave") }),
-  z.object({ type: z.literal("game"), action: caseActionSchema }),
+  z.object({
+    type: z.literal("game"),
+    action: z.union([
+      caseActionSchema,
+      fourRowActionSchema,
+      wordChainActionSchema,
+      quizRushActionSchema,
+    ]),
+  }),
 ]);
 const envelopeSchema = z.object({
   id: z.string().uuid(),
@@ -175,7 +186,8 @@ export class Engine {
               "This game has already started. Ask the host for a rematch.",
             );
           if (
-            room.players.length >= games.find((g) => g.id === room.gameId)!.max
+            room.players.length >=
+            (games.find((g) => g.id === room.gameId)?.max ?? 6)
           )
             throw new Error("This room is full.");
         }
@@ -213,7 +225,7 @@ export class Engine {
             throw new Error("This game has already started.");
           if (
             room.players.filter((p) => p.connected).length <
-            games.find((g) => g.id === room.gameId)!.min
+            (games.find((g) => g.id === room.gameId)?.min ?? 2)
           )
             throw new Error("You need at least 2 connected players.");
           if (room.players.some((p) => !p.connected || !p.ready))
@@ -316,7 +328,9 @@ export class Engine {
       if (!s.sockets.size && !s.room && this.now() - s.lastSeen > 86400000)
         this.sessions.delete(token);
   }
-  view(s: Session): RoomView | null {
+  // The registry projects distinct game views; callers narrow by `game.kind`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  view(s: Session): RoomView<any> | null {
     const r = this.rooms.get(s.room ?? "");
     if (!r) return null;
     return {

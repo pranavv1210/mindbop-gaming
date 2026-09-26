@@ -12,6 +12,9 @@ import {
   type Point,
 } from "../src/games/last-guest/world";
 import type { LastGuestAction } from "../src/games/last-guest/types";
+import { fourRow } from "../server/games/four-row/module";
+import { wordChain } from "../server/games/word-chain/module";
+import { quizRush } from "../server/games/quiz-rush/module";
 
 function setup() {
   let now = 100000;
@@ -56,6 +59,55 @@ function setup() {
     },
   };
 }
+
+test("four in a row enforces turns and detects a winning line", () => {
+  const state = fourRow.create(["gold", "violet"], 0);
+  const drop = (player: string, column: number) =>
+    fourRow.act(state, player, { type: "drop", column }, 0);
+  assert.throws(() => drop("violet", 0), /turn/);
+  drop("gold", 0);
+  drop("violet", 0);
+  drop("gold", 1);
+  drop("violet", 1);
+  drop("gold", 2);
+  drop("violet", 2);
+  drop("gold", 3);
+  assert.equal(state.winner, "gold");
+  assert.equal(state.winningCells.length, 4);
+  assert.equal(fourRow.finished(state), true);
+  assert.throws(() => drop("violet", 4), /over/);
+});
+test("word chain validates links, repeats, turns, and the winning score", () => {
+  const state = wordChain.create(["one", "two"], 0);
+  wordChain.act(state, "one", { type: "word", word: "spark" }, 0);
+  assert.equal(state.currentLetter, "k");
+  assert.throws(
+    () => wordChain.act(state, "one", { type: "word", word: "kite" }, 0),
+    /turn/,
+  );
+  assert.throws(
+    () => wordChain.act(state, "two", { type: "word", word: "apple" }, 0),
+    /start/,
+  );
+  wordChain.act(state, "two", { type: "word", word: "kite" }, 0);
+  assert.throws(
+    () => wordChain.act(state, "one", { type: "word", word: "kite" }, 0),
+    /already/,
+  );
+});
+test("quiz rush scores answers and finishes after five questions", () => {
+  const state = quizRush.create(["one", "two"], 0);
+  for (let round = 0; round < 5; round++) {
+    quizRush.act(state, "one", { type: "answer", option: 0 }, 0);
+    assert.throws(
+      () => quizRush.act(state, "one", { type: "answer", option: 1 }, 0),
+      /locked/,
+    );
+    quizRush.act(state, "two", { type: "answer", option: 1 }, 0);
+  }
+  assert.equal(state.finished, true);
+  assert.equal(quizRush.finished(state), true);
+});
 test("real rooms isolate members, allow duplicate names, reject unsupported games and cap at six", () => {
   const { engine, host, guest, act, create, join } = setup();
   assert.equal(

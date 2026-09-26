@@ -99,7 +99,7 @@ function finish(s: CaseState, theory: Theory) {
   s.inputs = {};
   s.proposal = null;
 }
-export const lastGuest: GameModule<CaseState> = {
+export const lastGuest: GameModule<CaseState, LastGuestView> = {
   id: "last-guest",
   create(players, now) {
     return {

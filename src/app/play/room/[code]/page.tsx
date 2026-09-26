@@ -2,10 +2,14 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Copy, Link2, Hotel, Check, Play } from "lucide-react";
+import { ArrowLeft, Copy, Link2, Gamepad2, Check, Play } from "lucide-react";
 import { useGame } from "@/components/game-provider";
 import { RoomPlayers } from "@/components/room-players";
 import { LastGuestGame } from "@/games/last-guest/last-guest-game";
+import { FourRowGame } from "@/games/four-row/four-row-game";
+import { WordChainGame } from "@/games/word-chain/word-chain-game";
+import { QuizRushGame } from "@/games/quiz-rush/quiz-rush-game";
+import { games } from "@/lib/games";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
 export default function RoomPage({
@@ -107,8 +111,31 @@ export default function RoomPage({
   const player = room.players.find((p) => p.id === id);
   const host = room.hostId === id;
   const canStart =
-    room.players.length >= 2 &&
+    room.players.length >=
+      (games.find((game) => game.id === room.gameId)?.min ?? 2) &&
     room.players.every((p) => p.ready && p.connected);
+  const gameInfo = games.find((game) => game.id === room.gameId);
+  const rules =
+    room.gameId === "word-chain"
+      ? [
+          "Use one real word with letters only.",
+          "Start with the final letter of the previous word.",
+          "Never repeat a word in the same round.",
+          "The first player to five valid words wins.",
+        ]
+      : room.gameId === "quiz-rush"
+        ? [
+            "Every match has five surprise questions.",
+            "Choose one answer and lock it in.",
+            "The round moves on when everyone has answered.",
+            "The highest score after five questions wins.",
+          ]
+        : [
+            "Drop one disc into any open column on your turn.",
+            "Discs fall to the lowest available space.",
+            "Connect four horizontally, vertically, or diagonally.",
+            "Block threats early—one missed move can end the round.",
+          ];
   return (
     <main id="main" className="container app-main">
       <div className="room-topline">
@@ -141,13 +168,13 @@ export default function RoomPage({
         {room.phase === "waiting" ? (
           <section className="room-panel">
             <span className="room-eyebrow">
-              <Hotel size={16} />
-              The Last Guest lobby
+              <Gamepad2 size={16} />
+              {gameInfo?.name} lobby
             </span>
-            <h1>The crew’s getting together.</h1>
+            <h1>Your game room is ready.</h1>
             <p>
-              Invite your investigators. Explore the hotel, compare evidence,
-              and agree on what happened.
+              Invite your people, share the code, and start when everyone is
+              ready.
             </p>
             <div className="invite-box">
               <div>
@@ -182,25 +209,15 @@ export default function RoomPage({
               {toast}
             </p>
             <div className="rules">
-              <h3>One hotel. Three suspects. One shared case.</h3>
+              <h3>How to play {gameInfo?.name}</h3>
               <ol>
-                <li>
-                  Explore five connected hotel areas using WASD, arrows, or
-                  touch controls.
-                </li>
-                <li>
-                  Inspect objects and question suspects. Discoveries are shared
-                  automatically.
-                </li>
-                <li>Connect evidence and coordinate in the team notebook.</li>
-                <li>
-                  Submit a supported accusation with everyone’s agreement.
-                </li>
+                {rules.map((rule) => (
+                  <li key={rule}>{rule}</li>
+                ))}
               </ol>
               <p className="players-note">
-                Early playable milestone: one compact case, procedural 3D art,
-                no voice chat. Progress is kept during short disconnects, but
-                not server restarts.
+                Live multiplayer match. Turns and scores are verified by the
+                server, and short disconnects keep your seat reserved.
               </p>
             </div>
             <div className="room-actions">
@@ -235,6 +252,27 @@ export default function RoomPage({
                     : "Everyone’s ready. Your host can start the game."}
             </p>
           </section>
+        ) : room.game?.kind === "four-row" ? (
+          <FourRowGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
+        ) : room.game?.kind === "word-chain" ? (
+          <WordChainGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
+        ) : room.game?.kind === "quiz-rush" ? (
+          <QuizRushGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
         ) : (
           <LastGuestGame
             key={room.game!.runId}

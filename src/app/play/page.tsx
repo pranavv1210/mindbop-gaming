@@ -6,7 +6,7 @@ import {
   Search,
   Plus,
   DoorOpen,
-  Hotel,
+  Gamepad2,
   History,
   X,
   ChevronDown,
@@ -25,6 +25,7 @@ export default function Hub() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All games");
   const [sort, setSort] = useState("featured");
+  const [selectedGame, setSelectedGame] = useState("four-row");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<Recent[]>([]);
@@ -41,7 +42,14 @@ export default function Hub() {
           .slice(0, 6),
       );
       setModal("join");
-    } else if (params.get("game") === "last-guest") setModal("create");
+    } else if (
+      games.some(
+        (game) => game.id === params.get("game") && game.status === "playable",
+      )
+    ) {
+      setSelectedGame(params.get("game")!);
+      setModal("create");
+    }
   }, []);
   useEffect(() => {
     if (room) router.replace(`/play/room/${room.code}`);
@@ -49,6 +57,10 @@ export default function Hub() {
   function open(kind: "create" | "join") {
     setError("");
     setModal(kind);
+  }
+  function openGame(gameId: string) {
+    setSelectedGame(gameId);
+    open("create");
   }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,7 +72,7 @@ export default function Hub() {
         ? {
             type: "create",
             ...guest,
-            gameId: "last-guest",
+            gameId: selectedGame,
           }
         : { type: "join", ...guest, code: code.toUpperCase() },
     );
@@ -195,7 +207,7 @@ export default function Hub() {
         {filtered.length ? (
           <div className="game-grid hub-grid catalog-grid">
             {filtered.map((g) => (
-              <GameCard key={g.id} game={g} onPlay={() => open("create")} />
+              <GameCard key={g.id} game={g} onPlay={() => openGame(g.id)} />
             ))}
           </div>
         ) : (
@@ -231,7 +243,7 @@ export default function Hub() {
               </div>
               <button
                 className="button button-outline"
-                onClick={() => open("create")}
+                onClick={() => openGame(r.gameId)}
               >
                 Play again <ArrowUpRight size={15} />
               </button>
@@ -251,7 +263,7 @@ export default function Hub() {
           }
           description={
             modal === "create"
-              ? "Create a real room for The Last Guest. Invite 1–5 friends to investigate together."
+              ? "Create a private match and invite a friend with the room code."
               : "Enter the 6-character room code from your host."
           }
           close={() => {
@@ -262,10 +274,12 @@ export default function Hub() {
             {modal === "create" ? (
               <>
                 <div className="selected-game">
-                  <Hotel size={32} />
+                  <Gamepad2 size={32} />
                   <div>
-                    <strong>The Last Guest</strong>
-                    <p>2–6 investigators · One authored case</p>
+                    <strong>
+                      {games.find((game) => game.id === selectedGame)?.name}
+                    </strong>
+                    <p>2 players · Live private match</p>
                   </div>
                 </div>
               </>

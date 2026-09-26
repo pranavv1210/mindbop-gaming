@@ -6,12 +6,12 @@ export function GameCover({ src, title }: { src: string; title: string }) {
   return failed ? (
     <div className="cover-fallback">
       {title}
-      <small>Cover unavailable · the case is still accessible</small>
+      <small>Cover unavailable · the game is still accessible</small>
     </div>
   ) : (
     <Image
       src={src}
-      alt={`${title}: the Halcyon Hotel in a storm`}
+      alt={`${title} game cover`}
       fill
       sizes="(max-width: 600px) 100vw, 480px"
       onError={() => setFailed(true)}
