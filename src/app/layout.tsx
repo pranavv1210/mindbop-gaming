@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "@fontsource/plus-jakarta-sans/latin-400.css";
 import "@fontsource/plus-jakarta-sans/latin-500.css";
 import "@fontsource/plus-jakarta-sans/latin-600.css";
@@ -48,6 +49,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1337164173594961"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <a className="skip-link" href="#main">
           Skip to content
         </a>
