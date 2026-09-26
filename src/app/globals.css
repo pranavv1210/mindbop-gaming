@@ -4017,3 +4017,24 @@ textarea::placeholder {
     padding: 23px;
   }
 }
+
+.account-connect { display: grid; gap: 13px; margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--line); }
+.account-connect > div { display: flex; align-items: center; gap: 9px; }
+.account-connect form { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+.account-connect form label { margin: 0; }
+.leaderboard { margin: 70px 0 100px; }
+.section-title { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.section-title h2 { margin-top: 8px; }
+.section-title > p { color: var(--muted); }
+.leaderboard-list { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: white; }
+.leader-row { display: grid; grid-template-columns: 44px 42px 1fr auto; gap: 14px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.leader-row:last-child { border: 0; }.leader-row > strong { color: var(--violet); }.leader-row .avatar { transform: scale(.8); }
+.leader-row small { color: var(--muted); }
+.rules-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.tutorial-link { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.tutorial-progress { display: flex; gap: 7px; margin-bottom: 28px; }
+.tutorial-progress i { width: 100%; height: 5px; border-radius: 9px; background: #e8e3ef; }.tutorial-progress i.active { background: var(--violet); }
+.tutorial-step { min-height: 170px; padding: 26px; border-radius: 18px; background: #f6f2ff; }
+.tutorial-step small { color: var(--violet); font-weight: 800; letter-spacing: .08em; }.tutorial-step h3 { margin: 18px 0 10px; font-size: 23px; line-height: 1.3; }.tutorial-step p { color: var(--muted); line-height: 1.55; }
+.tutorial-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; }
+@media (max-width: 620px) { .account-connect form { grid-template-columns: 1fr; }.section-title { align-items: start; flex-direction: column; }.leader-row { grid-template-columns: 36px 38px 1fr; }.leader-row small { grid-column: 3; }.tutorial-actions { flex-direction: column-reverse; }.tutorial-actions .button { width: 100%; } }

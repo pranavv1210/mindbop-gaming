@@ -12,6 +12,115 @@ const port = Number(process.env.PORT ?? 3000);
 const origin = process.env.APP_ORIGIN ?? `http://localhost:${port}`;
 const app = next({ dev, hostname: "0.0.0.0", port });
 const engine = new Engine();
+const supabaseUrl =
+  process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseSecret =
+  process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabasePublic =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? supabaseSecret;
+async function authUser(req: IncomingMessage) {
+  const bearer = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  if (!bearer || !supabaseUrl || !supabasePublic) return null;
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: supabasePublic, Authorization: `Bearer ${bearer}` },
+  });
+  if (!response.ok) return null;
+  return (await response.json()) as { id: string };
+}
+async function restoreRooms() {
+  if (!supabaseUrl || !supabaseSecret) return;
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/rooms?select=code,state&expires_at=gt.${encodeURIComponent(new Date().toISOString())}`,
+    {
+      headers: {
+        apikey: supabaseSecret,
+        Authorization: `Bearer ${supabaseSecret}`,
+      },
+    },
+  );
+  if (response.ok) engine.restoreRooms(await response.json());
+}
+let saveTimer: NodeJS.Timeout | undefined;
+const recordedMatches = new Set<string>();
+async function recordCompletedMatches() {
+  if (!supabaseUrl || !supabaseSecret) return;
+  for (const snapshot of engine.roomSnapshots()) {
+    if (snapshot.phase !== "completed") continue;
+    const room = snapshot.state as unknown as {
+      players: Array<{ id: string }>;
+      state: {
+        runId?: string;
+        winner?: string | null;
+        winnerIds?: string[];
+        draw?: boolean;
+        scores?: Record<string, number>;
+      };
+    };
+    const game = room.state;
+    if (!game?.runId || recordedMatches.has(game.runId)) continue;
+    recordedMatches.add(game.runId);
+    const winners = new Set(
+      game.winnerIds ?? (game.winner ? [game.winner] : []),
+    );
+    const results = room.players.map((player) => ({
+      profile_id: player.id,
+      result: game.draw
+        ? "draw"
+        : winners.has(player.id)
+          ? "win"
+          : winners.size
+            ? "loss"
+            : "finished",
+      score: game.scores?.[player.id] ?? 0,
+    }));
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/rpc/record_match_result`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: supabaseSecret,
+          Authorization: `Bearer ${supabaseSecret}`,
+        },
+        body: JSON.stringify({
+          p_match_id: game.runId,
+          p_game_id: snapshot.gameId,
+          p_room_code: snapshot.code,
+          p_results: results,
+          p_state: game,
+        }),
+      },
+    );
+    if (!response.ok) recordedMatches.delete(game.runId);
+  }
+}
+function persistRooms() {
+  if (!supabaseUrl || !supabaseSecret) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    const snapshots = engine.roomSnapshots().map((r) => ({
+      code: r.code,
+      game_id: r.gameId,
+      host_user_id: r.hostId,
+      phase: r.phase,
+      state: r.state,
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 3600000).toISOString(),
+    }));
+    if (!snapshots.length) return;
+    await fetch(`${supabaseUrl}/rest/v1/rooms?on_conflict=code`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseSecret,
+        Authorization: `Bearer ${supabaseSecret}`,
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify(snapshots),
+    });
+    await recordCompletedMatches();
+  }, 150);
+}
 const tokenFrom = (req: IncomingMessage) =>
   req.headers.cookie
     ?.split("; ")
@@ -33,6 +142,7 @@ function limited(key: string, count: number) {
   return times.length > count;
 }
 async function main() {
+  await restoreRooms();
   await app.prepare();
   const server = createServer(async (req, res) => {
     const pathname = new URL(req.url ?? "/", origin).pathname;
@@ -60,7 +170,8 @@ async function main() {
         if (limited(`session:${req.socket.remoteAddress}`, 60))
           return json(429, { error: "Too many requests. Wait a minute." });
         try {
-          const session = engine.session(tokenFrom(req));
+          const user = await authUser(req);
+          const session = engine.session(tokenFrom(req), user?.id);
           res.setHeader(
             "Set-Cookie",
             `mindbop_session=${session.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400${!dev && origin.startsWith("https:") ? "; Secure" : ""}`,
@@ -70,9 +181,7 @@ async function main() {
           return json(503, { error: "The server is busy. Try again shortly." });
         }
       }
-      const configured = Boolean(
-        process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-      );
+      const configured = Boolean(supabaseUrl && supabaseSecret);
       if (req.method === "GET") return json(200, { available: configured });
       if (req.method !== "POST") return json(405, { error: "Use POST." });
       if (!configured)
@@ -99,20 +208,17 @@ async function main() {
           });
         const { category, message, name, email } = input.data;
         const data = { category, message, name, email };
-        const response = await fetch(
-          `${process.env.SUPABASE_URL}/rest/v1/feedback`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-              Prefer: "return=minimal",
-            },
-            body: JSON.stringify(data),
-            signal: AbortSignal.timeout(8000),
+        const response = await fetch(`${supabaseUrl}/rest/v1/feedback`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseSecret!,
+            Authorization: `Bearer ${supabaseSecret}`,
+            Prefer: "return=minimal",
           },
-        );
+          body: JSON.stringify(data),
+          signal: AbortSignal.timeout(8000),
+        });
         if (!response.ok) throw new Error("Storage unavailable");
         return json(201, { received: true });
       } catch {
@@ -165,12 +271,14 @@ async function main() {
       if (typeof ack !== "function") return;
       const result = engine.command(s, input);
       engine.tick();
+      persistRooms();
       ack(result);
       broadcast();
     });
     socket.on("move", (input) => engine.move(s, input));
     socket.on("disconnect", () => {
       engine.disconnect(s, socket.id);
+      persistRooms();
       last.delete(socket.id);
       broadcast();
     });

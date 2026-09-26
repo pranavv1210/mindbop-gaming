@@ -17,6 +17,8 @@ async function startMatch(browser: Browser, gameId: string) {
     .getByRole("dialog")
     .getByRole("button", { name: "Join room" })
     .click();
+  await host.getByRole("button", { name: "Skip tutorial" }).click();
+  await guest.getByRole("button", { name: "Skip tutorial" }).click();
   await host.getByRole("button", { name: "I’m ready" }).click();
   await guest.getByRole("button", { name: "I’m ready" }).click();
   await host.getByRole("button", { name: "Start game" }).click();

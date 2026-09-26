@@ -24,6 +24,8 @@ test("two players complete and rematch a Four in a Row game", async ({
     .getByRole("button", { name: "Join room" })
     .click();
   await expect(guest.getByText("Your private room code")).toBeVisible();
+  await host.getByRole("button", { name: "Skip tutorial" }).click();
+  await guest.getByRole("button", { name: "Skip tutorial" }).click();
 
   await host.getByRole("button", { name: "I’m ready" }).click();
   await guest.getByRole("button", { name: "I’m ready" }).click();

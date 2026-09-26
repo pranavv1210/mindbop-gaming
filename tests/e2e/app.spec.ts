@@ -21,7 +21,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await page.getByRole("link", { name: "Explore games", exact: true }).click();
   await expect(page).toHaveURL(/#games$/);
   await expect(
-    page.getByRole("button", { name: "Email your idea" }),
+    page.getByRole("button", { name: "Send your idea" }),
   ).toBeEnabled();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });

@@ -12,6 +12,7 @@ import { QuizRushGame } from "@/games/quiz-rush/quiz-rush-game";
 import { games } from "@/lib/games";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
+import { GameTutorial } from "@/components/game-tutorial";
 export default function RoomPage({
   params,
 }: {
@@ -209,7 +210,14 @@ export default function RoomPage({
               {toast}
             </p>
             <div className="rules">
-              <h3>How to play {gameInfo?.name}</h3>
+              <div className="rules-heading">
+                <h3>How to play {gameInfo?.name}</h3>
+                <GameTutorial
+                  gameId={room.gameId}
+                  gameName={gameInfo?.name ?? "this game"}
+                  steps={rules}
+                />
+              </div>
               <ol>
                 {rules.map((rule) => (
                   <li key={rule}>{rule}</li>

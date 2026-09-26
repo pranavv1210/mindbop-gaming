@@ -17,6 +17,7 @@
     "@fontsource/dm-sans": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@next/env": "^16.3.5",
+    "@supabase/supabase-js": "^2.117.2",
     "cross-env": "^10.1.0",
     "lucide-react": "^1.47.0",
     "motion": "^13.4.0",

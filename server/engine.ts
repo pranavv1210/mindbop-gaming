@@ -70,7 +70,29 @@ export class Engine {
   rooms = new Map<string, Room>();
   sessions = new Map<string, Session>();
   constructor(private now: () => number = Date.now) {}
-  session(token?: string): Session {
+  restoreRooms(rows: Array<{ code: string; state: Room }>) {
+    for (const row of rows) {
+      const room = row.state;
+      if (!room || !modules.has(room.gameId)) continue;
+      room.players = room.players.map((p) => ({
+        ...p,
+        connected: false,
+        ready: false,
+        disconnectedAt: this.now(),
+      }));
+      this.rooms.set(row.code, room);
+    }
+  }
+  roomSnapshots() {
+    return [...this.rooms.values()].map((room) => ({
+      code: room.code,
+      gameId: room.gameId,
+      hostId: room.hostId,
+      phase: room.phase,
+      state: room,
+    }));
+  }
+  session(token?: string, playerId?: string): Session {
     const existing = token ? this.sessions.get(token) : undefined;
     if (existing) {
       existing.lastSeen = this.now();
@@ -79,7 +101,7 @@ export class Engine {
     if (this.sessions.size >= 10000)
       throw new Error("The server is busy. Try again shortly.");
     const s: Session = {
-      id: randomUUID(),
+      id: playerId ?? randomUUID(),
       token: randomBytes(32).toString("hex"),
       sockets: new Set(),
       lastSeen: this.now(),
@@ -87,6 +109,12 @@ export class Engine {
       rate: [],
     };
     this.sessions.set(s.token, s);
+    if (playerId) {
+      const restored = [...this.rooms.values()].find((room) =>
+        room.players.some((p) => p.id === playerId),
+      );
+      if (restored) s.room = restored.code;
+    }
     return s;
   }
   connect(s: Session, socketId: string) {

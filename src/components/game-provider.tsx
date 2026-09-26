@@ -17,6 +17,7 @@ import type {
 } from "@/lib/protocol";
 import { readGuest, saveGuest, saveRecent, type Guest } from "@/lib/storage";
 import { actionId } from "@/lib/action-id";
+import { useAccount } from "./account-provider";
 type Context = {
   guest: Guest | null;
   updateGuest: (guest: Guest) => void;
@@ -33,6 +34,7 @@ type Context = {
 };
 const GameContext = createContext<Context | null>(null);
 export function GameProvider({ children }: { children: React.ReactNode }) {
+  const { accessToken } = useAccount();
   const [guest, setGuest] = useState<Guest | null>(null);
   const [id, setId] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,6 +58,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       try {
         const res = await fetch("/api/session", {
           method: "POST",
+          headers: accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : {},
           signal: AbortSignal.timeout(10000),
         });
         const data = await res.json();
@@ -102,7 +107,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       socket?.disconnect();
       socketRef.current = null;
     };
-  }, [generation]);
+  }, [generation, accessToken]);
   useEffect(() => {
     if (room?.phase === "completed") {
       const player = room.players.find((p) => p.id === id);

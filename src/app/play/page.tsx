@@ -16,7 +16,11 @@ import { GameCard } from "@/components/game-card";
 import { Modal } from "@/components/modal";
 import { games, categories } from "@/lib/games";
 import { readRecent, type Recent } from "@/lib/storage";
+import { Leaderboard } from "@/components/leaderboard";
+import { useAccount } from "@/components/account-provider";
+import { getSupabase } from "@/lib/supabase-browser";
 export default function Hub() {
+  const account = useAccount();
   const { guest, room, connected, initialized, connectionError, retry, send } =
     useGame();
   const router = useRouter();
@@ -51,6 +55,31 @@ export default function Hub() {
       setModal("create");
     }
   }, []);
+  useEffect(() => {
+    const db = getSupabase();
+    if (!db || !account.user) return;
+    void db
+      .from("match_players")
+      .select("match_id,result,matches(game_id,completed_at)")
+      .eq("profile_id", account.user.id)
+      .order("match_id", { ascending: false })
+      .limit(8)
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const cloud = data.map((row) => {
+          const match = (
+            Array.isArray(row.matches) ? row.matches[0] : row.matches
+          ) as { game_id: string; completed_at: string };
+          return {
+            gameId: match.game_id,
+            outcome: row.result[0].toUpperCase() + row.result.slice(1),
+            playedAt: new Date(match.completed_at).getTime(),
+            matchId: row.match_id,
+          };
+        });
+        setRecent(cloud);
+      });
+  }, [account.user]);
   useEffect(() => {
     if (room) router.replace(`/play/room/${room.code}`);
   }, [room, router]);
@@ -256,6 +285,7 @@ export default function Hub() {
           </div>
         )}
       </section>
+      <Leaderboard />
       {modal && (
         <Modal
           title={
