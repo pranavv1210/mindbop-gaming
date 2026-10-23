@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight, Users, Clock3 } from "lucide-react";
 import type { GameInfo } from "@/lib/games";
 import { GameCover } from "./game-cover";
@@ -9,8 +11,15 @@ export function GameCard({
   game: GameInfo;
   onPlay?: () => void;
 }) {
+  const router=useRouter();
+  const activate = () => {
+    if (game.status !== "playable") return;
+    if (game.mode === "solo" && game.route) router.push(game.route);
+    else if (onPlay) onPlay();
+    else router.push(`/play?game=${game.id}`);
+  };
   return (
-    <article className={`game-card game-${game.color}`}>
+    <article className={`game-card game-${game.color} ${game.status === "playable" ? "clickable" : ""}`} role={game.status === "playable" ? "link" : undefined} tabIndex={game.status === "playable" ? 0 : undefined} onClick={activate} onKeyDown={(event)=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();activate()}}}>
       <div className="game-card-art mystery-cover">
         <GameCover src={game.cover} title={game.name} />
         <span
@@ -41,15 +50,15 @@ export function GameCard({
         </div>
         {game.status === "playable" ? (
           game.mode === "solo" && game.route ? (
-            <Link href={game.route} className="card-link">
+            <Link href={game.route} className="card-link" onClick={(event)=>event.stopPropagation()}>
               Enter challenge <ArrowUpRight size={18} />
             </Link>
           ) : onPlay ? (
-            <button className="card-link" onClick={onPlay}>
+            <button className="card-link" onClick={(event)=>{event.stopPropagation();onPlay()}}>
               Create a room <ArrowUpRight size={18} />
             </button>
           ) : (
-            <Link href={`/play?game=${game.id}`} className="card-link">
+            <Link href={`/play?game=${game.id}`} className="card-link" onClick={(event)=>event.stopPropagation()}>
               Let’s play <ArrowUpRight size={18} />
             </Link>
           )

@@ -48,3 +48,14 @@ test("API rejects foreign origins and truthfully reports unavailable feedback", 
   expect(accepted.status()).toBe(200);
   expect(accepted.headers()["set-cookie"]).toContain("HttpOnly");
 });
+test("security headers and the custom 404 fail closed",async({request,page})=>{
+ const response=await request.get("/");const headers=response.headers();
+ expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+ expect(headers["content-security-policy"]).toContain("object-src 'none'");
+ expect(headers["x-content-type-options"]).toBe("nosniff");
+ expect(headers["x-frame-options"]).toBe("DENY");
+ expect(headers["permissions-policy"]).toContain("camera=()");
+ expect(headers["x-powered-by"]).toBeUndefined();
+ const missing=await page.goto("/definitely-not-a-real-room");expect(missing?.status()).toBe(404);
+ await expect(page.getByRole("heading",{name:"This room doesn’t exist."})).toBeVisible();
+});

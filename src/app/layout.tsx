@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "@fontsource/plus-jakarta-sans/latin-400.css";
 import "@fontsource/plus-jakarta-sans/latin-500.css";
 import "@fontsource/plus-jakarta-sans/latin-600.css";
@@ -33,28 +32,22 @@ export const metadata: Metadata = {
     title: "MindBop — Multiplayer games for friends",
     description:
       "Private rooms, one invite link, and browser games built for groups.",
-    images: ["/images/games/last-guest.svg"],
+    images: ["/images/games/mindbop-draw-v2.webp"],
   },
   twitter: {
     card: "summary_large_image",
     title: "MindBop — Multiplayer games for friends",
     description:
       "Private rooms, one invite link, and browser games built for groups.",
-    images: ["/images/games/last-guest.svg"],
+    images: ["/images/games/mindbop-draw-v2.webp"],
   },
 };
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1337164173594961"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <a className="skip-link" href="#main">
           Skip to content
         </a>

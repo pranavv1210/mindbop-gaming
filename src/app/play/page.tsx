@@ -6,13 +6,13 @@ import {
   Search,
   Plus,
   DoorOpen,
-  Gamepad2,
   History,
   X,
   ChevronDown,
 } from "lucide-react";
 import { useGame } from "@/components/game-provider";
 import { GameCard } from "@/components/game-card";
+import { GameCover } from "@/components/game-cover";
 import { Modal } from "@/components/modal";
 import { games, categories } from "@/lib/games";
 import { readRecent, type Recent } from "@/lib/storage";
@@ -298,7 +298,7 @@ export default function Hub() {
           }
           description={
             modal === "create"
-              ? "Create a private match and invite a friend with the room code."
+              ? "Choose a multiplayer game, then create a private room for your crew."
               : "Enter the 6-character room code from your host."
           }
           close={() => {
@@ -307,17 +307,10 @@ export default function Hub() {
         >
           <form onSubmit={submit}>
             {modal === "create" ? (
-              <>
-                <div className="selected-game">
-                  <Gamepad2 size={32} />
-                  <div>
-                    <strong>
-                      {games.find((game) => game.id === selectedGame)?.name}
-                    </strong>
-                    <p>2 players · Live private match</p>
-                  </div>
-                </div>
-              </>
+              <fieldset className="game-picker">
+                <legend>Select a game</legend>
+                {games.filter(game=>game.mode==="multiplayer"&&game.status==="playable").map(game=><button type="button" key={game.id} className={selectedGame===game.id?"selected":""} aria-pressed={selectedGame===game.id} onClick={()=>setSelectedGame(game.id)}><GameCover src={game.cover} title={game.name}/><span><strong>{game.name}</strong><small>{game.min}–{game.max} players · {game.duration}</small></span><i/></button>)}
+              </fieldset>
             ) : (
               <label>
                 Room code

@@ -7,6 +7,7 @@ import { Avatar } from "./art";
 import { Modal } from "./modal";
 import { useGame } from "./game-provider";
 import { useAccount } from "./account-provider";
+import { ThemeToggle } from "./theme-toggle";
 export function AppHeader() {
   const { guest, updateGuest } = useGame();
   const account = useAccount();
@@ -23,7 +24,7 @@ export function AppHeader() {
               The game hub
             </Link>
           </div>
-          {guest && (
+          <div className="app-header-actions"><ThemeToggle/>{guest && (
             <button
               className="profile-button"
               onClick={() => {
@@ -36,7 +37,7 @@ export function AppHeader() {
               <span>{guest.name}</span>
               <ChevronDown size={14} />
             </button>
-          )}
+          )}</div>
         </div>
       </header>
       {edit && guest && (

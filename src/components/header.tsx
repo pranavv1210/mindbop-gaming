@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { Brand } from "./brand";
+import { ThemeToggle } from "./theme-toggle";
 export function Header() {
   const [open, setOpen] = useState(false);
   return (
@@ -25,9 +26,7 @@ export function Header() {
             </a>
           ))}
         </nav>
-        <Link className="button button-dark header-cta" href="/play">
-          Let’s play <ArrowUpRight size={17} />
-        </Link>
+        <div className="header-actions"><ThemeToggle/><Link className="button button-dark header-cta" href="/play">Let’s play <ArrowUpRight size={17} /></Link></div>
         <button
           className="icon-button menu-button"
           aria-label={open ? "Close menu" : "Open menu"}

@@ -50,6 +50,11 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
   page,
 }) => {
   await page.goto("/play");
+  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+  await page.getByRole("button",{name:"Toggle color theme"}).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme","light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme","light");
   await expect(page.getByText("Connected & ready")).toBeVisible();
   await page.getByRole("button", { name: "Edit your profile" }).click();
   await page.getByLabel("Display name").fill("Pranav");
@@ -67,6 +72,9 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
   await expect(
     page.getByRole("heading", { name: "MindBop Draw", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Create room", exact: true }).click();
+  await expect(page.getByRole("group",{name:"Select a game"})).toBeVisible();
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Join room", exact: true }).click();
   await page.getByLabel("Room code", { exact: true }).fill("AAAAAA");
   await page
