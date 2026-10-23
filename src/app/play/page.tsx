@@ -88,6 +88,11 @@ export default function Hub() {
     setModal(kind);
   }
   function openGame(gameId: string) {
+    const game = games.find((item) => item.id === gameId);
+    if (game?.mode === "solo" && game.route) {
+      router.push(game.route);
+      return;
+    }
     setSelectedGame(gameId);
     open("create");
   }

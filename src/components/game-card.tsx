@@ -32,7 +32,7 @@ export function GameCard({
         <div className="game-meta">
           <span>
             <Users size={14} />
-            {game.min}–{game.max} players
+            {game.mode === "solo" ? "Single player" : `${game.min}–${game.max} players`}
           </span>
           <span>
             <Clock3 size={14} />
@@ -40,7 +40,11 @@ export function GameCard({
           </span>
         </div>
         {game.status === "playable" ? (
-          onPlay ? (
+          game.mode === "solo" && game.route ? (
+            <Link href={game.route} className="card-link">
+              Enter challenge <ArrowUpRight size={18} />
+            </Link>
+          ) : onPlay ? (
             <button className="card-link" onClick={onPlay}>
               Create a room <ArrowUpRight size={18} />
             </button>

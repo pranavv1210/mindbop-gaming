@@ -6,7 +6,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Play together.",
   );
-  await expect(page.locator("#games .game-card")).toHaveCount(1);
+  await expect(page.locator("#games .game-card")).toHaveCount(3);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect
     .poll(() =>
