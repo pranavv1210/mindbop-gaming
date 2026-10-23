@@ -7,6 +7,8 @@ import { caseActionSchema } from "./games/last-guest/module";
 import { fourRowActionSchema } from "./games/four-row/module";
 import { wordChainActionSchema } from "./games/word-chain/module";
 import { quizRushActionSchema } from "./games/quiz-rush/module";
+import { addDrawPoint, drawActionSchema } from "./games/draw/module";
+import type { DrawSettings } from "../src/games/draw/types";
 
 const name = z
   .string()
@@ -28,6 +30,7 @@ const commandSchema = z.discriminatedUnion("type", [
     code: z.string().regex(/^[A-Z2-9]{6}$/),
   }),
   z.object({ type: z.literal("ready"), ready: z.boolean() }),
+  z.object({ type: z.literal("configure"), settings: z.object({ rounds:z.number().int().min(1).max(5), drawTime:z.number().int().min(30).max(120), chooseTime:z.number().int().min(10).max(30), maxPlayers:z.number().int().min(2).max(8) }) }),
   z.object({ type: z.literal("start") }),
   z.object({ type: z.literal("rematch") }),
   z.object({ type: z.literal("leave") }),
@@ -38,6 +41,7 @@ const commandSchema = z.discriminatedUnion("type", [
       fourRowActionSchema,
       wordChainActionSchema,
       quizRushActionSchema,
+      drawActionSchema,
     ]),
   }),
 ]);
@@ -55,6 +59,7 @@ type Room = {
   createdAt: number;
   updatedAt: number;
   state: unknown;
+  settings?: DrawSettings;
 };
 export type Session = {
   id: string;
@@ -200,6 +205,7 @@ export class Engine {
             createdAt: this.now(),
             updatedAt: this.now(),
             state: null,
+            settings: c.gameId === "mindbop-draw" ? { rounds: 3, drawTime: 80, chooseTime: 15, maxPlayers: 8 } : undefined,
           };
           this.rooms.set(code, room);
         } else {
@@ -215,7 +221,7 @@ export class Engine {
             );
           if (
             room.players.length >=
-            (games.find((g) => g.id === room.gameId)?.max ?? 6)
+            (room.settings?.maxPlayers ?? games.find((g) => g.id === room.gameId)?.max ?? 6)
           )
             throw new Error("This room is full.");
         }
@@ -243,6 +249,10 @@ export class Engine {
           if (room.hostId !== s.id)
             throw new Error("Only the host can do that.");
         }
+        if (c.type === "configure") {
+          if (room.phase !== "waiting" || room.hostId !== s.id) throw new Error("Only the host can change settings before the game.");
+          room.settings = c.settings;
+        }
         if (c.type === "ready") {
           if (room.phase !== "waiting")
             throw new Error("The game has already started.");
@@ -261,6 +271,7 @@ export class Engine {
           room.state = mod.create(
             room.players.map((p) => p.id),
             this.now(),
+            room.settings,
           );
           room.phase = "playing";
         }
@@ -324,6 +335,12 @@ export class Engine {
       .input?.(room.state, s.id, input.data.x, input.data.z, this.now());
     room.updatedAt = this.now();
   }
+  draw(s: Session, raw: unknown) {
+    const room = this.rooms.get(s.room ?? "");
+    if (!room || room.phase !== "playing") return;
+    addDrawPoint(room.state, s.id, raw);
+    room.updatedAt = this.now();
+  }
   tick() {
     for (const room of this.rooms.values()) {
       const expired = room.players.filter(
@@ -375,6 +392,7 @@ export class Engine {
         ready: p.ready,
       })),
       game: r.state ? modules.get(r.gameId)!.project(r.state, s.id) : null,
+      settings: r.settings,
       serverTime: this.now(),
     };
   }

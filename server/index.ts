@@ -276,6 +276,7 @@ async function main() {
       broadcast();
     });
     socket.on("move", (input) => engine.move(s, input));
+    socket.on("draw", (input) => engine.draw(s, input));
     socket.on("disconnect", () => {
       engine.disconnect(s, socket.id);
       persistRooms();

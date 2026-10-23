@@ -29,7 +29,7 @@ export default function Hub() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All games");
   const [sort, setSort] = useState("featured");
-  const [selectedGame, setSelectedGame] = useState("four-row");
+  const [selectedGame, setSelectedGame] = useState("mindbop-draw");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<Recent[]>([]);

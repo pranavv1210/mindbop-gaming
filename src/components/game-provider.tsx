@@ -31,6 +31,7 @@ type Context = {
   send: (command: Command) => Promise<Reply>;
   retry: () => void;
   move: (x: number, z: number) => void;
+  draw: (input: import("@/games/draw/types").DrawPoint) => void;
 };
 const GameContext = createContext<Context | null>(null);
 export function GameProvider({ children }: { children: React.ReactNode }) {
@@ -127,6 +128,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                 ? room.game.winnerIds.includes(id)
                   ? "Won"
                   : "Finished"
+                : room.game?.kind === "mindbop-draw"
+                  ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
                 : room.game?.result?.solved
                   ? "Case solved"
                   : "Case reviewed";
@@ -181,6 +184,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         move: (x, z) => {
           const socket = socketRef.current;
           if (socket?.connected) socket.volatile.emit("move", { x, z });
+        },
+        draw: (input) => {
+          const socket = socketRef.current;
+          if (socket?.connected) socket.volatile.emit("draw", input);
         },
         retry: () => {
           setConnectionError("");

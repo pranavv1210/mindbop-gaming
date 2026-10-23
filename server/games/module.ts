@@ -1,7 +1,7 @@
 import type { GameView } from "../../src/lib/protocol";
 export interface GameModule<State = unknown, View extends GameView = GameView> {
   id: string;
-  create(players: string[], now: number): State;
+  create(players: string[], now: number, settings?: unknown): State;
   input?(
     state: State,
     playerId: string,

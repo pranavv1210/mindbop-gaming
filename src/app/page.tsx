@@ -51,12 +51,12 @@ export default function Home() {
               away
             </div>
             <h1>
-              Multiplayer games.
+              Play together.
               <br />
-              Your favorite people.
+              Make chaos.
               <br />
               <span className="chaos-word">
-                One room code.
+                Draw something wild.
                 <svg viewBox="0 0 420 20" fill="none" aria-hidden="true">
                   <path
                     d="M4 13C110 2 310 2 414 9M46 18c110-8 245-9 331-4"
@@ -68,9 +68,9 @@ export default function Home() {
               </span>
             </h1>
             <p>
-              Open a game, create a private room, and send the code. MindBop is
-              bringing familiar classics online with fast private rooms and
-              original, polished visuals built for playing together.
+              Party games, creative challenges, and multiplayer experiences
+              built for you and your friends. Start with MindBop Draw—no
+              download, no account, just one link.
             </p>
             <div className="hero-actions">
               <Link href="/play" className="button button-primary button-large">
@@ -110,7 +110,7 @@ export default function Home() {
                 </div>
               </article>
             ))}
-            <p>Three games live. Two more on the way.</p>
+            <p>MindBop Draw is live. More beautiful chaos is coming.</p>
           </div>
         </section>
         <div className="marquee" aria-hidden="true">
@@ -133,14 +133,14 @@ export default function Home() {
               <span className="section-kicker">
                 <Sparkles size={16} /> Pick your kind of chaos
               </span>
-              <h2>Game night starts here.</h2>
+              <h2>One canvas. Endless bad ideas.</h2>
             </div>
             <Link href="/play" className="text-link">
               Explore the game hub <ArrowUpRight size={18} />
             </Link>
           </div>
           <p className="section-intro">
-            Familiar games, instant private rooms, and no downloads or accounts.
+            Pick a word, draw it your way, and watch your friends guess in real time.
           </p>
           <div className="game-grid catalog-grid">
             {games.map((game) => (
@@ -164,8 +164,8 @@ export default function Home() {
               {[
                 {
                   icon: MousePointer2,
-                  title: "Pick your game",
-                  text: "Choose a familiar classic and jump straight into a private match.",
+                  title: "Set your name",
+                  text: "Choose your player name and open MindBop Draw from any browser.",
                 },
                 {
                   icon: PartyPopper,

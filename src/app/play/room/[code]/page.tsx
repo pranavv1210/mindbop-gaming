@@ -9,6 +9,7 @@ import { LastGuestGame } from "@/games/last-guest/last-guest-game";
 import { FourRowGame } from "@/games/four-row/four-row-game";
 import { WordChainGame } from "@/games/word-chain/word-chain-game";
 import { QuizRushGame } from "@/games/quiz-rush/quiz-rush-game";
+import { DrawGame } from "@/games/draw/draw-game";
 import { games } from "@/lib/games";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
@@ -117,7 +118,9 @@ export default function RoomPage({
     room.players.every((p) => p.ready && p.connected);
   const gameInfo = games.find((game) => game.id === room.gameId);
   const rules =
-    room.gameId === "word-chain"
+    room.gameId === "mindbop-draw"
+      ? ["The artist picks one of three fresh words.","Draw with color, brush, or eraser—no letters or clues.","Guess in chat; faster correct answers earn more points.","Everyone draws once per round. Highest score wins."]
+      : room.gameId === "word-chain"
       ? [
           "Use one real word with letters only.",
           "Start with the final letter of the previous word.",
@@ -228,6 +231,13 @@ export default function RoomPage({
                 server, and short disconnects keep your seat reserved.
               </p>
             </div>
+            {host && room.gameId === "mindbop-draw" && room.settings && <div className="draw-settings">
+              <h3>Game settings</h3>
+              <label>Rounds<select value={room.settings.rounds} onChange={e=>void act({type:"configure",settings:{...room.settings!,rounds:+e.target.value}})}>{[1,2,3,4,5].map(v=><option key={v}>{v}</option>)}</select></label>
+              <label>Drawing time<select value={room.settings.drawTime} onChange={e=>void act({type:"configure",settings:{...room.settings!,drawTime:+e.target.value}})}>{[30,45,60,80,90,120].map(v=><option key={v} value={v}>{v} sec</option>)}</select></label>
+              <label>Word choice<select value={room.settings.chooseTime} onChange={e=>void act({type:"configure",settings:{...room.settings!,chooseTime:+e.target.value}})}>{[10,15,20,30].map(v=><option key={v} value={v}>{v} sec</option>)}</select></label>
+              <label>Players<select value={room.settings.maxPlayers} onChange={e=>void act({type:"configure",settings:{...room.settings!,maxPlayers:+e.target.value}})}>{[2,3,4,5,6,7,8].map(v=><option key={v} value={v}>Up to {v}</option>)}</select></label>
+            </div>}
             <div className="room-actions">
               <button
                 className={`button ${player?.ready ? "button-outline" : "button-primary"}`}
@@ -260,6 +270,8 @@ export default function RoomPage({
                     : "Everyone’s ready. Your host can start the game."}
             </p>
           </section>
+        ) : room.game?.kind === "mindbop-draw" ? (
+          <DrawGame key={room.game.runId} room={room as import("@/lib/protocol").RoomView<import("@/games/draw/types").DrawView>} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
         ) : room.game?.kind === "four-row" ? (
           <FourRowGame
             key={room.game.runId}
