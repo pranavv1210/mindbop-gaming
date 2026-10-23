@@ -23,6 +23,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(
     page.getByRole("button", { name: "Send your idea" }),
   ).toBeEnabled();
+  await expect(page.getByRole("heading", { name: /game night that starts/i })).toBeVisible();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await expect
@@ -45,6 +46,27 @@ test("landing navigation, email feedback, and responsive layouts", async ({
     .click();
   await expect(page).toHaveURL(/#about$/);
   await expect(page.getByRole("button", { name: "Open menu" })).toBeVisible();
+});
+
+test("developer contribution links and production sitemap are complete", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/developers");
+  await expect(page.getByRole("link", { name: "Submit your game" })).toHaveAttribute(
+    "href",
+    /^mailto:pranavv736@gmail\.com\?subject=/,
+  );
+  await expect(
+    page.getByRole("link", { name: "Contribute to MindBop" }),
+  ).toHaveAttribute("href", /^mailto:pranavv736@gmail\.com\?subject=/);
+
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.ok()).toBeTruthy();
+  const xml = await sitemap.text();
+  expect(xml).toContain("https://mindbop-gaming.onrender.com/play");
+  expect(xml).toContain("/play/solo/neon-breach");
+  expect(xml).not.toContain("localhost");
 });
 test("guest preferences, search, filters, invalid rooms, and accessible dialogs", async ({
   page,

@@ -35,6 +35,10 @@ const routes = [
   },
 ];
 
+const contactEmail = "pranavv736@gmail.com";
+const gameSubmissionHref = `mailto:${contactEmail}?subject=${encodeURIComponent("Game submission for MindBop")}&body=${encodeURIComponent("Hi Pranav,\n\nI would like to submit a game to MindBop.\n\nGame name:\nPlayable URL or private build:\nSource repository and technology:\nPlayer count and device support:\nOwnership or license details:\nAnything else:\n")}`;
+const contributionHref = `mailto:${contactEmail}?subject=${encodeURIComponent("I want to contribute to MindBop")}&body=${encodeURIComponent("Hi Pranav,\n\nI would like to contribute to MindBop.\n\nWhat I can help with (game, code, design, testing, art, audio, or another area):\nPortfolio or repository:\nMy idea:\nAvailability:\n")}`;
+
 export default function Developers() {
   return (
     <main id="main" className="developer-page">
@@ -56,15 +60,20 @@ export default function Developers() {
             can integrate games we create, games submitted by their owners, and
             open-source projects whose licenses allow commercial hosting.
           </p>
-          <a
-            className="button button-primary button-large"
-            href="mailto:pranavv736@gmail.com?subject=Game%20submission%20for%20MindBop"
-          >
-            Email a game submission <ArrowUpRight size={19} />
-          </a>
+          <div className="developer-actions">
+            <a
+              className="button button-primary button-large"
+              href={gameSubmissionHref}
+            >
+              Submit your game <ArrowUpRight size={19} />
+            </a>
+            <a className="button button-outline button-large" href={contributionHref}>
+              Contribute to MindBop <ArrowUpRight size={19} />
+            </a>
+          </div>
           <small>
-            Include a private build link when the game is not public yet. Never
-            email passwords or signing keys.
+            Both buttons open your email app with <strong>{contactEmail}</strong> in
+            the To field. Never email passwords or signing keys.
           </small>
         </div>
         <div className="developer-brief">

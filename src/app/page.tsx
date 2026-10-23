@@ -23,7 +23,9 @@ export default function Home() {
     "@type": "WebSite",
     name: "MindBop",
     description: "Multiplayer browser games made for groups of friends.",
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    url:
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      "https://mindbop-gaming.onrender.com",
     hasPart: games.map((game) => ({
       "@type": "VideoGame",
       name: game.name,
@@ -146,6 +148,26 @@ export default function Home() {
             {games.map((game) => (
               <GameCard key={game.id} game={game} />
             ))}
+          </div>
+        </section>
+        <section className="usp-section container" aria-labelledby="usp-title">
+          <div className="usp-statement">
+            <span>Why MindBop</span>
+            <h2 id="usp-title">The game night that starts before the group chat gets distracted.</h2>
+          </div>
+          <div className="usp-points">
+            <article>
+              <strong>One link</strong>
+              <p>Create a private room and bring everyone in without installs or accounts.</p>
+            </article>
+            <article>
+              <strong>Every screen</strong>
+              <p>Phone, tablet, or laptop—each game is built to stay complete and playable.</p>
+            </article>
+            <article>
+              <strong>Actually social</strong>
+              <p>Quick rules and shared moments keep the people, not setup screens, at the center.</p>
+            </article>
           </div>
         </section>
         <section className="how-section" id="how-it-works">

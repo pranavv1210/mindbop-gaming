@@ -11,8 +11,10 @@ import "./globals.css";
 import "@/games/last-guest/last-guest.css";
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://mindbop-gaming.onrender.com",
   ),
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   title: {
     default: "MindBop — Multiplayer games for friends",
     template: "%s | MindBop",

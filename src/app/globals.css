@@ -4055,6 +4055,89 @@ html[data-theme="dark"]{--muted:#bcb5c9;--violet:#7554e8;--violet-dark:#6443d1}h
 @media(max-width:380px){.profile-button>span,.profile-button>svg:last-child{display:none}.profile-button{padding-inline:4px}}
 html[data-theme="dark"] .connection{color:#8bc99b}html[data-theme="dark"] .hub-banner p{color:#c9bddd}html[data-theme="dark"] .search-copy small,html[data-theme="dark"] .sort-shell>span{color:#aaa3b8}html[data-theme="dark"] .room-eyebrow{color:#b79be0}
 @media(max-width:600px){.menu-button{position:relative;right:1px}}
+
+.usp-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+  gap: clamp(40px, 7vw, 110px);
+  align-items: start;
+  padding-block: clamp(76px, 9vw, 132px);
+}
+.usp-statement > span {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: var(--violet);
+  font-weight: 700;
+}
+.usp-statement h2 {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(38px, 5vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.usp-points {
+  border-top: 1px solid var(--line);
+}
+.usp-points article {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 28px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line);
+}
+.usp-points strong {
+  font-size: 18px;
+}
+.usp-points p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.developer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+.developer-actions + small {
+  display: block;
+  margin-top: 13px;
+}
+.developer-actions + small strong {
+  color: inherit;
+}
+html[data-theme="dark"] .usp-points {
+  border-color: #393247;
+}
+html[data-theme="dark"] .usp-points article {
+  border-color: #393247;
+}
+html[data-theme="dark"] .usp-points p {
+  color: #b8b1c4;
+}
+html[data-theme="dark"] .usp-statement > span {
+  color: #aa91ff;
+}
+@media (max-width: 820px) {
+  .usp-section {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+}
+@media (max-width: 520px) {
+  .usp-points article {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .developer-actions {
+    display: grid;
+  }
+  .developer-actions .button {
+    width: 100%;
+  }
+}
 .account-connect > div { display: flex; align-items: center; gap: 9px; }
 .account-connect form { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
 .account-connect form label { margin: 0; }
