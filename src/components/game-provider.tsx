@@ -31,7 +31,8 @@ type Context = {
   send: (command: Command) => Promise<Reply>;
   retry: () => void;
   move: (x: number, z: number) => void;
-  draw: (input: import("@/games/draw/types").DrawPoint) => void;
+  draw: (input: import("@/games/draw/types").DrawPoint[]) => void;
+  onDrawPoints: (listener: (points: import("@/games/draw/types").DrawPoint[]) => void) => () => void;
 };
 const GameContext = createContext<Context | null>(null);
 export function GameProvider({ children }: { children: React.ReactNode }) {
@@ -188,6 +189,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         draw: (input) => {
           const socket = socketRef.current;
           if (socket?.connected) socket.volatile.emit("draw", input);
+        },
+        onDrawPoints: (listener) => {
+          const socket = socketRef.current;
+          socket?.on("draw:points", listener);
+          return () => { socket?.off("draw:points", listener); };
         },
         retry: () => {
           setConnectionError("");

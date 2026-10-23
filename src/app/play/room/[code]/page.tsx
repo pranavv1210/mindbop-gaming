@@ -240,14 +240,15 @@ export default function RoomPage({
             </div>}
             <div className="room-actions">
               <button
-                className={`button ${player?.ready ? "button-outline" : "button-primary"}`}
+                className={`button ready-toggle ${player?.ready ? "is-ready" : "button-primary"}`}
+                aria-pressed={Boolean(player?.ready)}
                 disabled={busy || !connected}
                 onClick={() =>
                   void act({ type: "ready", ready: !player?.ready })
                 }
               >
                 <Check size={17} />
-                {player?.ready ? "Ready! (undo)" : "I’m ready"}
+                {player?.ready ? "Ready — you’re in!" : "I’m ready"}
               </button>
               {host && (
                 <button

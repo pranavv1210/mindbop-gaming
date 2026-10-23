@@ -39,9 +39,10 @@ export type Envelope = { id: string; command: Command };
 export type ServerEvents = {
   "room:state": (room: RoomView | null) => void;
   session: (data: { id: string }) => void;
+  "draw:points": (points: DrawPoint[]) => void;
 };
 export type ClientEvents = {
   command: (envelope: Envelope, ack: (result: Reply) => void) => void;
   move: (input: { x: number; z: number }) => void;
-  draw: (input: DrawPoint) => void;
+  draw: (input: DrawPoint[]) => void;
 };

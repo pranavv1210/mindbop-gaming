@@ -7,7 +7,7 @@ import { caseActionSchema } from "./games/last-guest/module";
 import { fourRowActionSchema } from "./games/four-row/module";
 import { wordChainActionSchema } from "./games/word-chain/module";
 import { quizRushActionSchema } from "./games/quiz-rush/module";
-import { addDrawPoint, drawActionSchema } from "./games/draw/module";
+import { addDrawPoints, drawActionSchema } from "./games/draw/module";
 import type { DrawSettings } from "../src/games/draw/types";
 
 const name = z
@@ -337,9 +337,10 @@ export class Engine {
   }
   draw(s: Session, raw: unknown) {
     const room = this.rooms.get(s.room ?? "");
-    if (!room || room.phase !== "playing") return;
-    addDrawPoint(room.state, s.id, raw);
+    if (!room || room.phase !== "playing") return [];
+    const points = addDrawPoints(room.state, s.id, raw);
     room.updatedAt = this.now();
+    return points;
   }
   tick() {
     for (const room of this.rooms.values()) {

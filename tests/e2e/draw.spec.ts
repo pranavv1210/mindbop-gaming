@@ -13,10 +13,11 @@ test("two players create, join, draw, guess, score, and retain a responsive game
  await guest.getByRole("dialog").getByRole("button",{name:"Join room"}).click();
  await expect(guest).toHaveURL(new RegExp(`/play/room/${code}`));
  for(const page of [host,guest]){const skip=page.getByRole("button",{name:"Skip tutorial"});if(await skip.isVisible())await skip.click()}
- await guest.getByRole("button",{name:"I’m ready"}).click(); await host.getByRole("button",{name:"I’m ready"}).click();
+ const guestReady=guest.getByRole("button",{name:"I’m ready"});await guestReady.click();await expect(guest.getByRole("button",{name:"Ready — you’re in!"})).toHaveAttribute("aria-pressed","true");await host.getByRole("button",{name:"I’m ready"}).click();
  await host.getByRole("button",{name:"Start game"}).click();
  await expect(host.getByText("Choose your secret word")).toBeVisible();
  const choice=host.locator(".word-picker button").first(); const word=(await choice.textContent())!.trim(); await choice.click();
+ await expect(host.locator(".secret-word")).toContainText(word);
  await expect(guest.getByLabel("Guess the word")).toBeEnabled();
  const canvas=host.getByLabel("Shared drawing canvas"); const box=await canvas.boundingBox(); expect(box).toBeTruthy();
  await host.mouse.move(box!.x+30,box!.y+30); await host.mouse.down(); await host.mouse.move(box!.x+130,box!.y+100,{steps:5}); await host.mouse.up();

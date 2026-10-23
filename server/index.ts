@@ -253,9 +253,11 @@ async function main() {
       const session = engine.sessions.get(tokenFrom(socket.request)!);
       if (!session) continue;
       const view = engine.view(session);
-      const comparable = JSON.stringify(
-        view ? { ...view, serverTime: 0 } : null,
-      );
+      const comparable = JSON.stringify(view ? {
+        ...view,
+        serverTime: 0,
+        game: view.game?.kind === "mindbop-draw" ? { ...view.game, strokes: [] } : view.game,
+      } : null);
       if (last.get(socket.id) !== comparable) {
         socket.emit("room:state", view);
         last.set(socket.id, comparable);
@@ -276,7 +278,15 @@ async function main() {
       broadcast();
     });
     socket.on("move", (input) => engine.move(s, input));
-    socket.on("draw", (input) => engine.draw(s, input));
+    socket.on("draw", (input) => {
+      const points = engine.draw(s, input);
+      if (!points.length) return;
+      for (const peer of io.sockets.sockets.values()) {
+        if (peer.id === socket.id) continue;
+        const session = engine.sessions.get(tokenFrom(peer.request)!);
+        if (session?.room === s.room) peer.emit("draw:points", points);
+      }
+    });
     socket.on("disconnect", () => {
       engine.disconnect(s, socket.id);
       persistRooms();
