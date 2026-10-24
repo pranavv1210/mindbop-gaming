@@ -6,7 +6,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Play together.",
   );
-  await expect(page.locator("#games .game-card")).toHaveCount(6);
+  await expect(page.locator("#games .game-card")).toHaveCount(7);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect
     .poll(() =>
@@ -135,6 +135,7 @@ test("every game card route and multiplayer action is reachable", async ({ page 
     "/play/game/mafia",
     "/play/game/two-truths",
     "/play/game/sky-scramble",
+    "/play/game/comedy-chaos",
   ];
   const cards = page.locator(".catalog-grid .game-card");
   await expect(cards).toHaveCount(expectedRoutes.length);

@@ -6,5 +6,6 @@ export const games:GameInfo[]=[
  {id:"mafia",name:"Mafia",category:"Social deduction",description:"Someone in town is lying. Investigate, accuse, and survive the night before the shadows take over.",min:6,max:20,duration:"15–30 min",status:"playable",color:"burgundy",cover:"/images/games/mafia.svg",mode:"multiplayer"},
  {id:"two-truths",name:"2 Truths 1 Lie",category:"Social party",description:"Three stories. One bluff. Find the lie—or convince the whole room that it is true.",min:3,max:20,duration:"10–20 min",status:"playable",color:"coral",cover:"/images/games/two-truths.svg",mode:"multiplayer"},
  {id:"sky-scramble",name:"Sky Scramble",category:"3D obstacle race",description:"Race across a ridiculous floating obstacle course, recover from spectacular falls, and qualify before your friends.",min:2,max:20,duration:"8–15 min",status:"playable",color:"cyan",cover:"/images/games/sky-scramble.svg",mode:"multiplayer"},
+ {id:"comedy-chaos",name:"Comedy Chaos",category:"Comedy party",description:"Write ridiculous answers, vote for the funniest, and discover which friend secretly wrote each one.",min:3,max:20,duration:"15–30 min",status:"playable",color:"pink",cover:"/images/games/comedy-chaos.svg",mode:"multiplayer"},
 ];
 export const categories=["All games",...new Set(games.map(game=>game.category))];

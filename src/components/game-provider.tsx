@@ -137,6 +137,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                   ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
                 : room.game?.kind === "sky-scramble"
                   ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
+                : room.game?.kind === "comedy-chaos"
+                  ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
                 : room.game?.result?.solved
                   ? "Case solved"
                   : "Case reviewed";

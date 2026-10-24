@@ -13,6 +13,9 @@ import { DrawGame } from "@/games/draw/draw-game";
 import { MafiaGame } from "@/games/mafia/mafia-game";
 import { TwoTruthsGame } from "@/games/two-truths/two-truths-game";
 import { SkyScrambleGame } from "@/games/sky-scramble/sky-game";
+import { ComedyGame } from "@/games/comedy-chaos/comedy-game";
+import type { ComedySettings } from "@/games/comedy-chaos/types";
+import type { DrawSettings } from "@/games/draw/types";
 import { games } from "@/lib/games";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
@@ -121,34 +124,61 @@ export default function RoomPage({
     room.players.every((p) => p.ready && p.connected);
   const gameInfo = games.find((game) => game.id === room.gameId);
   const rules =
-    room.gameId === "sky-scramble"
-      ? ["Reach the glowing finish arch before qualification fills.","Use WASD or arrows to move and Space to jump; touch controls appear on mobile.","Falling returns you to your latest checkpoint.","Qualify through each shrinking round to become the final winner."]
-      : room.gameId === "mafia"
-      ? ["Your secret role is visible only to you.","At night, special roles choose private actions.","By day, discuss and vote to eliminate a suspect.","Town wins by removing every Mafia member; Mafia wins at parity."]
-      : room.gameId === "two-truths"
-      ? ["On your turn, write three different statements and secretly mark the lie.","Everyone discusses the stories without seeing the answer.","Lock one vote for the statement you think is false.","Correct guesses and convincing bluffs earn points."]
-      : room.gameId === "mindbop-draw"
-      ? ["The artist picks one of three fresh words.","Draw with color, brush, or eraser—no letters or clues.","Guess in chat; faster correct answers earn more points.","Everyone draws once per round. Highest score wins."]
-      : room.gameId === "word-chain"
+    room.gameId === "comedy-chaos"
       ? [
-          "Use one real word with letters only.",
-          "Start with the final letter of the previous word.",
-          "Never repeat a word in the same round.",
-          "The first player to five valid words wins.",
+          "Read the prompt and secretly write one funny answer.",
+          "Answers are shuffled and anonymous; perform one aloud if enabled.",
+          "Vote for the funniest answer and optionally spend your one Double Down.",
+          "Guess who wrote an answer, then watch the authors and points reveal.",
         ]
-      : room.gameId === "quiz-rush"
+      : room.gameId === "sky-scramble"
         ? [
-            "Every match has five surprise questions.",
-            "Choose one answer and lock it in.",
-            "The round moves on when everyone has answered.",
-            "The highest score after five questions wins.",
+            "Reach the glowing finish arch before qualification fills.",
+            "Use WASD or arrows to move and Space to jump; touch controls appear on mobile.",
+            "Falling returns you to your latest checkpoint.",
+            "Qualify through each shrinking round to become the final winner.",
           ]
-        : [
-            "Drop one disc into any open column on your turn.",
-            "Discs fall to the lowest available space.",
-            "Connect four horizontally, vertically, or diagonally.",
-            "Block threats early—one missed move can end the round.",
-          ];
+        : room.gameId === "mafia"
+          ? [
+              "Your secret role is visible only to you.",
+              "At night, special roles choose private actions.",
+              "By day, discuss and vote to eliminate a suspect.",
+              "Town wins by removing every Mafia member; Mafia wins at parity.",
+            ]
+          : room.gameId === "two-truths"
+            ? [
+                "On your turn, write three different statements and secretly mark the lie.",
+                "Everyone discusses the stories without seeing the answer.",
+                "Lock one vote for the statement you think is false.",
+                "Correct guesses and convincing bluffs earn points.",
+              ]
+            : room.gameId === "mindbop-draw"
+              ? [
+                  "The artist picks one of three fresh words.",
+                  "Draw with color, brush, or eraser—no letters or clues.",
+                  "Guess in chat; faster correct answers earn more points.",
+                  "Everyone draws once per round. Highest score wins.",
+                ]
+              : room.gameId === "word-chain"
+                ? [
+                    "Use one real word with letters only.",
+                    "Start with the final letter of the previous word.",
+                    "Never repeat a word in the same round.",
+                    "The first player to five valid words wins.",
+                  ]
+                : room.gameId === "quiz-rush"
+                  ? [
+                      "Every match has five surprise questions.",
+                      "Choose one answer and lock it in.",
+                      "The round moves on when everyone has answered.",
+                      "The highest score after five questions wins.",
+                    ]
+                  : [
+                      "Drop one disc into any open column on your turn.",
+                      "Discs fall to the lowest available space.",
+                      "Connect four horizontally, vertically, or diagonally.",
+                      "Block threats early—one missed move can end the round.",
+                    ];
   return (
     <main id="main" className="container app-main">
       <div className="room-topline">
@@ -240,13 +270,185 @@ export default function RoomPage({
                 server, and short disconnects keep your seat reserved.
               </p>
             </div>
-            {host && room.gameId === "mindbop-draw" && room.settings && <div className="draw-settings">
-              <h3>Game settings</h3>
-              <label>Rounds<select value={room.settings.rounds} onChange={e=>void act({type:"configure",settings:{...room.settings!,rounds:+e.target.value}})}>{[1,2,3,4,5].map(v=><option key={v}>{v}</option>)}</select></label>
-              <label>Drawing time<select value={room.settings.drawTime} onChange={e=>void act({type:"configure",settings:{...room.settings!,drawTime:+e.target.value}})}>{[30,45,60,80,90,120].map(v=><option key={v} value={v}>{v} sec</option>)}</select></label>
-              <label>Word choice<select value={room.settings.chooseTime} onChange={e=>void act({type:"configure",settings:{...room.settings!,chooseTime:+e.target.value}})}>{[10,15,20,30].map(v=><option key={v} value={v}>{v} sec</option>)}</select></label>
-              <label>Players<select value={room.settings.maxPlayers} onChange={e=>void act({type:"configure",settings:{...room.settings!,maxPlayers:+e.target.value}})}>{[2,3,4,5,6,7,8].map(v=><option key={v} value={v}>Up to {v}</option>)}</select></label>
-            </div>}
+            {host &&
+              room.gameId === "mindbop-draw" &&
+              room.settings &&
+              (() => {
+                const drawSettings = room.settings as DrawSettings;
+                return (
+                  <div className="draw-settings">
+                    <h3>Game settings</h3>
+                    <label>
+                      Rounds
+                      <select
+                        value={drawSettings.rounds}
+                        onChange={(e) =>
+                          void act({
+                            type: "configure",
+                            settings: {
+                              ...drawSettings,
+                              rounds: +e.target.value,
+                            },
+                          })
+                        }
+                      >
+                        {[1, 2, 3, 4, 5].map((v) => (
+                          <option key={v}>{v}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Drawing time
+                      <select
+                        value={drawSettings.drawTime}
+                        onChange={(e) =>
+                          void act({
+                            type: "configure",
+                            settings: {
+                              ...drawSettings,
+                              drawTime: +e.target.value,
+                            },
+                          })
+                        }
+                      >
+                        {[30, 45, 60, 80, 90, 120].map((v) => (
+                          <option key={v} value={v}>
+                            {v} sec
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Word choice
+                      <select
+                        value={drawSettings.chooseTime}
+                        onChange={(e) =>
+                          void act({
+                            type: "configure",
+                            settings: {
+                              ...drawSettings,
+                              chooseTime: +e.target.value,
+                            },
+                          })
+                        }
+                      >
+                        {[10, 15, 20, 30].map((v) => (
+                          <option key={v} value={v}>
+                            {v} sec
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Players
+                      <select
+                        value={drawSettings.maxPlayers}
+                        onChange={(e) =>
+                          void act({
+                            type: "configure",
+                            settings: {
+                              ...drawSettings,
+                              maxPlayers: +e.target.value,
+                            },
+                          })
+                        }
+                      >
+                        {[2, 3, 4, 5, 6, 7, 8].map((v) => (
+                          <option key={v} value={v}>
+                            Up to {v}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                );
+              })()}
+            {host &&
+              room.gameId === "comedy-chaos" &&
+              room.settings &&
+              (() => {
+                const settings = room.settings as ComedySettings;
+                const update = (next: Partial<ComedySettings>) =>
+                  void act({
+                    type: "configure",
+                    settings: { ...settings, ...next },
+                  });
+                return (
+                  <div className="comedy-settings">
+                    <h3>Game settings</h3>
+                    <label>
+                      Rounds
+                      <select
+                        value={settings.rounds}
+                        onChange={(event) =>
+                          update({
+                            rounds: +event.target
+                              .value as ComedySettings["rounds"],
+                          })
+                        }
+                      >
+                        {[3, 5, 7, 10].map((value) => (
+                          <option key={value}>{value}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Answer time
+                      <select
+                        value={settings.answerTime}
+                        onChange={(event) =>
+                          update({
+                            answerTime: +event.target
+                              .value as ComedySettings["answerTime"],
+                          })
+                        }
+                      >
+                        {[20, 30, 45, 60].map((value) => (
+                          <option key={value} value={value}>
+                            {value} sec
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Voting time
+                      <select
+                        value={settings.votingTime}
+                        onChange={(event) =>
+                          update({
+                            votingTime: +event.target
+                              .value as ComedySettings["votingTime"],
+                          })
+                        }
+                      >
+                        {[10, 15, 20, 30].map((value) => (
+                          <option key={value} value={value}>
+                            {value} sec
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {[
+                      ["Double Down", "doubleDown"],
+                      ["Author guessing", "authorGuessing"],
+                      ["Performance mode", "performanceMode"],
+                    ].map(([label, key]) => (
+                      <label className="setting-switch" key={key}>
+                        <span>{label}</span>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(
+                            settings[key as keyof ComedySettings],
+                          )}
+                          onChange={(event) =>
+                            update({ [key]: event.target.checked })
+                          }
+                        />
+                      </label>
+                    ))}
+                  </div>
+                );
+              })()}
             <div className="room-actions">
               <button
                 className={`button ready-toggle ${player?.ready ? "is-ready" : "button-primary"}`}
@@ -280,14 +482,45 @@ export default function RoomPage({
                     : "Everyone’s ready. Your host can start the game."}
             </p>
           </section>
+        ) : room.game?.kind === "comedy-chaos" ? (
+          <ComedyGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
         ) : room.game?.kind === "sky-scramble" ? (
-          <SkyScrambleGame key={room.game.runId} room={room} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
+          <SkyScrambleGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
         ) : room.game?.kind === "mafia" ? (
-          <MafiaGame key={room.game.runId} room={room} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
+          <MafiaGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
         ) : room.game?.kind === "two-truths" ? (
-          <TwoTruthsGame key={room.game.runId} room={room} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
+          <TwoTruthsGame
+            key={room.game.runId}
+            room={room}
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
         ) : room.game?.kind === "mindbop-draw" ? (
-          <DrawGame key={room.game.runId} room={room as import("@/lib/protocol").RoomView<import("@/games/draw/types").DrawView>} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
+          <DrawGame
+            key={room.game.runId}
+            room={
+              room as import("@/lib/protocol").RoomView<
+                import("@/games/draw/types").DrawView
+              >
+            }
+            leave={() => void act({ type: "leave" })}
+            rematch={() => void act({ type: "rematch" })}
+          />
         ) : room.game?.kind === "four-row" ? (
           <FourRowGame
             key={room.game.runId}

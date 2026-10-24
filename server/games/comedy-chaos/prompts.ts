@@ -1,0 +1,23 @@
+export type ComedyPrompt={id:string;text:string;category:string;format:string;difficulty:"easy"|"medium";active:true};
+export const COMEDY_PROMPTS:ComedyPrompt[]=[
+ {id:"date-01",text:"What's the worst advice you could give someone on their first date?",category:"Dating",format:"Worst advice",difficulty:"easy",active:true},
+ {id:"dentist-01",text:"What's the worst thing your dentist could say halfway through an appointment?",category:"Awkward",format:"Open question",difficulty:"easy",active:true},
+ {id:"work-01",text:"What should absolutely not appear in your boss's search history?",category:"Work",format:"Open question",difficulty:"medium",active:true},
+ {id:"text-01",text:'Your friend texts at 3:17 AM: "Bro. Don\'t panic." What happened?',category:"Friendship",format:"Text message",difficulty:"easy",active:true},
+ {id:"family-01",text:"What's the worst thing to hear your grandmother say at family dinner?",category:"Family",format:"Open question",difficulty:"easy",active:true},
+ {id:"pet-01",text:"If your pet could text you, what would its first message be?",category:"Animals",format:"Text message",difficulty:"easy",active:true},
+ {id:"hotel-01",text:"What's the worst sentence to hear from a hotel receptionist?",category:"Travel",format:"Open question",difficulty:"easy",active:true},
+ {id:"school-01",text:"What would be the worst thing for a teacher to announce before an exam?",category:"School",format:"Open question",difficulty:"easy",active:true},
+ {id:"ceo-01",text:'Your CEO walks in and says, "Starting Monday, we are..."',category:"Work",format:"Complete the sentence",difficulty:"easy",active:true},
+ {id:"fridge-01",text:"Your refrigerator becomes self-aware. What's its first sentence?",category:"Absurd",format:"Absurd",difficulty:"easy",active:true},
+ {id:"headline-01",text:"Write the worst news headline about your hometown.",category:"Everyday Life",format:"Fake headline",difficulty:"medium",active:true},
+ {id:"late-01",text:"What's the worst excuse for being three hours late?",category:"Awkward",format:"Bad excuse",difficulty:"easy",active:true},
+ {id:"movie-01",text:"Pitch the worst possible sequel to a famous movie.",category:"Pop Culture",format:"Movie pitch",difficulty:"medium",active:true},
+ {id:"wifi-01",text:"Your Wi-Fi network has filed a complaint about you. What does it say?",category:"Technology",format:"Absurd",difficulty:"easy",active:true},
+ {id:"food-01",text:"What is the least reassuring slogan for a restaurant?",category:"Food",format:"Fake slogan",difficulty:"easy",active:true},
+ {id:"airport-01",text:"The pilot says, 'Quick question for anyone on board...' Finish it.",category:"Travel",format:"Complete the sentence",difficulty:"easy",active:true},
+ {id:"robot-01",text:"Your new robot assistant quits after one day. Why?",category:"Technology",format:"Open question",difficulty:"easy",active:true},
+ {id:"wedding-01",text:"What's the worst sentence to start a wedding speech with?",category:"Relationships",format:"Open question",difficulty:"easy",active:true},
+ {id:"alien-01",text:"Aliens studied Earth for years and decided our strangest habit is...",category:"Absurd",format:"Complete the sentence",difficulty:"medium",active:true},
+ {id:"roommate-01",text:"Your roommate calls an emergency house meeting about what?",category:"Friendship",format:"Open question",difficulty:"easy",active:true},
+];

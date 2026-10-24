@@ -12,6 +12,8 @@ import type { DrawSettings } from "../src/games/draw/types";
 import { mafiaActionSchema } from "./games/mafia/module";
 import { twoTruthsActionSchema } from "./games/two-truths/module";
 import { skyActionSchema } from "./games/sky-scramble/module";
+import { comedyActionSchema } from "./games/comedy-chaos/module";
+import type { ComedySettings } from "../src/games/comedy-chaos/types";
 
 const name = z
   .string()
@@ -33,7 +35,10 @@ const commandSchema = z.discriminatedUnion("type", [
     code: z.string().regex(/^[A-Z2-9]{6}$/),
   }),
   z.object({ type: z.literal("ready"), ready: z.boolean() }),
-  z.object({ type: z.literal("configure"), settings: z.object({ rounds:z.number().int().min(1).max(5), drawTime:z.number().int().min(30).max(120), chooseTime:z.number().int().min(10).max(30), maxPlayers:z.number().int().min(2).max(8) }) }),
+  z.object({ type: z.literal("configure"), settings: z.union([
+    z.object({ rounds:z.number().int().min(1).max(5), drawTime:z.number().int().min(30).max(120), chooseTime:z.number().int().min(10).max(30), maxPlayers:z.number().int().min(2).max(8) }),
+    z.object({rounds:z.union([z.literal(3),z.literal(5),z.literal(7),z.literal(10)]),answerTime:z.union([z.literal(20),z.literal(30),z.literal(45),z.literal(60)]),votingTime:z.union([z.literal(10),z.literal(15),z.literal(20),z.literal(30)]),doubleDown:z.boolean(),authorGuessing:z.boolean(),performanceMode:z.boolean(),maxPlayers:z.literal(20)})
+  ]) }),
   z.object({ type: z.literal("start") }),
   z.object({ type: z.literal("rematch") }),
   z.object({ type: z.literal("leave") }),
@@ -48,6 +53,7 @@ const commandSchema = z.discriminatedUnion("type", [
       mafiaActionSchema,
       twoTruthsActionSchema,
       skyActionSchema,
+      comedyActionSchema,
     ]),
   }),
 ]);
@@ -65,7 +71,7 @@ type Room = {
   createdAt: number;
   updatedAt: number;
   state: unknown;
-  settings?: DrawSettings;
+  settings?: DrawSettings | ComedySettings;
 };
 export type Session = {
   id: string;
@@ -211,7 +217,7 @@ export class Engine {
             createdAt: this.now(),
             updatedAt: this.now(),
             state: null,
-            settings: c.gameId === "mindbop-draw" ? { rounds: 3, drawTime: 80, chooseTime: 15, maxPlayers: 8 } : undefined,
+            settings: c.gameId === "mindbop-draw" ? { rounds: 3, drawTime: 80, chooseTime: 15, maxPlayers: 8 } : c.gameId === "comedy-chaos" ? {rounds:5,answerTime:30,votingTime:15,doubleDown:true,authorGuessing:true,performanceMode:true,maxPlayers:20} : undefined,
           };
           this.rooms.set(code, room);
         } else {

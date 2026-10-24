@@ -6,6 +6,7 @@ import type { DrawAction, DrawPoint, DrawSettings, DrawView } from "../games/dra
 import type { MafiaAction, MafiaView } from "../games/mafia/types";
 import type { TwoTruthsAction, TwoTruthsView } from "../games/two-truths/types";
 import type { SkyAction, SkyView } from "../games/sky-scramble/types";
+import type { ComedyAction, ComedySettings, ComedyView } from "../games/comedy-chaos/types";
 export type Player = {
   id: string;
   name: string;
@@ -14,7 +15,7 @@ export type Player = {
   ready: boolean;
 };
 export type GameView =
-  LastGuestView | FourRowView | WordChainView | QuizRushView | DrawView | MafiaView | TwoTruthsView | SkyView;
+  LastGuestView | FourRowView | WordChainView | QuizRushView | DrawView | MafiaView | TwoTruthsView | SkyView | ComedyView;
 export type RoomView<TGame extends GameView = LastGuestView> = {
   code: string;
   gameId: string;
@@ -24,19 +25,19 @@ export type RoomView<TGame extends GameView = LastGuestView> = {
   createdAt: number;
   game: TGame | null;
   serverTime: number;
-  settings?: DrawSettings;
+  settings?: DrawSettings | ComedySettings;
 };
 export type Reply = { ok: true; code?: string } | { ok: false; error: string };
 export type Command =
   | { type: "create"; name: string; avatar: number; gameId: string }
   | { type: "join"; code: string; name: string; avatar: number }
   | { type: "ready"; ready: boolean }
-  | { type: "configure"; settings: DrawSettings }
+  | { type: "configure"; settings: DrawSettings | ComedySettings }
   | { type: "start" | "leave" | "rematch" }
   | {
       type: "game";
       action:
-        LastGuestAction | FourRowAction | WordChainAction | QuizRushAction | DrawAction | MafiaAction | TwoTruthsAction | SkyAction;
+        LastGuestAction | FourRowAction | WordChainAction | QuizRushAction | DrawAction | MafiaAction | TwoTruthsAction | SkyAction | ComedyAction;
     };
 export type Envelope = { id: string; command: Command };
 export type ServerEvents = {

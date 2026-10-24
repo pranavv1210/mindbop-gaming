@@ -7,6 +7,7 @@ import type { GameModule } from "./module";
 import { mafia } from "./mafia/module";
 import { twoTruths } from "./two-truths/module";
 import { skyScramble } from "./sky-scramble/module";
+import { comedyChaos } from "./comedy-chaos/module";
 export const modules = new Map<string, GameModule>([
   [mindbopDraw.id, mindbopDraw as GameModule],
   [lastGuest.id, lastGuest as GameModule],
@@ -16,4 +17,5 @@ export const modules = new Map<string, GameModule>([
   [mafia.id, mafia as GameModule],
   [twoTruths.id, twoTruths as GameModule],
   [skyScramble.id, skyScramble as GameModule],
+  [comedyChaos.id, comedyChaos as GameModule],
 ]);
