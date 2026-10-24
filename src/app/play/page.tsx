@@ -85,6 +85,16 @@ export default function Hub() {
   useEffect(() => {
     if (room) router.replace(`/play/room/${room.code}`);
   }, [room, router]);
+  useEffect(() => {
+    if (modal !== "create") return;
+    document
+      .querySelector(`[data-game-id="${selectedGame}"]`)
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+  }, [selectedGame, modal]);
   function open(kind: "create" | "join") {
     setError("");
     setModal(kind);
@@ -107,7 +117,9 @@ export default function Hub() {
     const initialGame = selectedGame;
     let cursor = choices.findIndex((game) => game.id === selectedGame);
     for (let frame = 0; frame < 12; frame += 1) {
-      cursor = (cursor + 1 + Math.floor(Math.random() * (choices.length - 1))) % choices.length;
+      cursor =
+        (cursor + 1 + Math.floor(Math.random() * (choices.length - 1))) %
+        choices.length;
       setSelectedGame(choices[cursor].id);
       await new Promise((resolve) => setTimeout(resolve, 45 + frame * 8));
     }
@@ -341,7 +353,37 @@ export default function Hub() {
                     {randomizing ? "Picking…" : "Surprise me"}
                   </button>
                 </legend>
-                {games.filter(game=>game.mode==="multiplayer"&&game.status==="playable").map(game=><button type="button" key={game.id} className={selectedGame===game.id?"selected":""} aria-pressed={selectedGame===game.id} onClick={()=>setSelectedGame(game.id)}><GameCover src={game.cover} title={game.name}/><span><strong>{game.name}</strong><small>{game.min}–{game.max} players · {game.duration}</small></span><i/></button>)}
+                <div
+                  className={`game-picker-carousel ${randomizing ? "is-spinning" : ""}`}
+                >
+                  {games
+                    .filter(
+                      (game) =>
+                        game.mode === "multiplayer" &&
+                        game.status === "playable",
+                    )
+                    .map((game) => (
+                      <button
+                        type="button"
+                        data-game-id={game.id}
+                        key={game.id}
+                        className={selectedGame === game.id ? "selected" : ""}
+                        aria-pressed={selectedGame === game.id}
+                        onClick={() => setSelectedGame(game.id)}
+                      >
+                        <div className="picker-cover">
+                          <GameCover src={game.cover} title={game.name} />
+                        </div>
+                        <span>
+                          <strong>{game.name}</strong>
+                          <small>
+                            {game.min}–{game.max} players · {game.duration}
+                          </small>
+                        </span>
+                        <i />
+                      </button>
+                    ))}
+                </div>
               </fieldset>
             ) : (
               <label>
@@ -382,6 +424,7 @@ export default function Hub() {
               </p>
             )}
             <button
+              type="submit"
               className="button button-primary"
               disabled={busy || !connected}
             >

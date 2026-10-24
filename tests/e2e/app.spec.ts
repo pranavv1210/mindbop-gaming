@@ -23,7 +23,9 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(
     page.getByRole("button", { name: "Send your idea" }),
   ).toBeEnabled();
-  await expect(page.getByRole("heading", { name: /game night that starts/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /game night that starts/i }),
+  ).toBeVisible();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await expect
@@ -53,10 +55,9 @@ test("developer contribution links and production sitemap are complete", async (
   request,
 }) => {
   await page.goto("/developers");
-  await expect(page.getByRole("link", { name: "Submit your game" })).toHaveAttribute(
-    "href",
-    /^mailto:pranavv736@gmail\.com\?subject=/,
-  );
+  await expect(
+    page.getByRole("link", { name: "Submit your game" }),
+  ).toHaveAttribute("href", /^mailto:pranavv736@gmail\.com\?subject=/);
   await expect(
     page.getByRole("link", { name: "Contribute to MindBop" }),
   ).toHaveAttribute("href", /^mailto:pranavv736@gmail\.com\?subject=/);
@@ -72,11 +73,11 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
   page,
 }) => {
   await page.goto("/play");
-  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
-  await page.getByRole("button",{name:"Toggle color theme"}).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme","light");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme","light");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.getByText("Connected & ready")).toBeVisible();
   await page.getByRole("button", { name: "Edit your profile" }).click();
   await page.getByLabel("Display name").fill("Pranav");
@@ -95,11 +96,17 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
     page.getByRole("heading", { name: "MindBop Draw", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Create room", exact: true }).click();
-  await expect(page.getByRole("group",{name:"Select a game"})).toBeVisible();
-  const selectedBefore = await page.locator(".game-picker > button.selected strong").textContent();
+  await expect(
+    page.getByRole("group", { name: "Select a game" }),
+  ).toBeVisible();
+  const selectedBefore = await page
+    .locator(".game-picker-carousel > button.selected strong")
+    .textContent();
   await page.getByRole("button", { name: "Surprise me" }).click();
   await expect(page.getByRole("button", { name: "Surprise me" })).toBeEnabled();
-  await expect(page.locator(".game-picker > button.selected strong")).not.toHaveText(selectedBefore ?? "");
+  await expect(
+    page.locator(".game-picker-carousel > button.selected strong"),
+  ).not.toHaveText(selectedBefore ?? "");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Join room", exact: true }).click();
   await page.getByLabel("Room code", { exact: true }).fill("AAAAAA");
@@ -126,7 +133,9 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
     .toBe(true);
 });
 
-test("every game card route and multiplayer action is reachable", async ({ page }) => {
+test("every game card route and multiplayer action is reachable", async ({
+  page,
+}) => {
   await page.goto("/play");
   const expectedRoutes = [
     "/play/game/mindbop-draw",
@@ -148,5 +157,14 @@ test("every game card route and multiplayer action is reachable", async ({ page 
   await page.goto("/play/game/mafia");
   await page.getByRole("link", { name: /create/i }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Mafia", exact: false })).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("button", { name: "Mafia", exact: false }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Create room" })
+    .click();
+  await expect(page).toHaveURL(/\/play\/room\/[A-Z2-9]{6}/, {
+    timeout: 20_000,
+  });
 });

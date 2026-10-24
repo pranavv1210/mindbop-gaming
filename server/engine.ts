@@ -36,7 +36,7 @@ const commandSchema = z.discriminatedUnion("type", [
   }),
   z.object({ type: z.literal("ready"), ready: z.boolean() }),
   z.object({ type: z.literal("configure"), settings: z.union([
-    z.object({ rounds:z.number().int().min(1).max(5), drawTime:z.number().int().min(30).max(120), chooseTime:z.number().int().min(10).max(30), maxPlayers:z.number().int().min(2).max(8) }),
+    z.object({ rounds:z.number().int().min(1).max(5), drawTime:z.number().int().min(30).max(120), chooseTime:z.number().int().min(10).max(30), maxPlayers:z.number().int().min(2).max(8), difficulty:z.enum(["easy","medium","hard"]) }),
     z.object({rounds:z.union([z.literal(3),z.literal(5),z.literal(7),z.literal(10)]),answerTime:z.union([z.literal(20),z.literal(30),z.literal(45),z.literal(60)]),votingTime:z.union([z.literal(10),z.literal(15),z.literal(20),z.literal(30)]),doubleDown:z.boolean(),authorGuessing:z.boolean(),performanceMode:z.boolean(),maxPlayers:z.literal(20)})
   ]) }),
   z.object({ type: z.literal("start") }),
@@ -217,7 +217,7 @@ export class Engine {
             createdAt: this.now(),
             updatedAt: this.now(),
             state: null,
-            settings: c.gameId === "mindbop-draw" ? { rounds: 3, drawTime: 80, chooseTime: 15, maxPlayers: 8 } : c.gameId === "comedy-chaos" ? {rounds:5,answerTime:30,votingTime:15,doubleDown:true,authorGuessing:true,performanceMode:true,maxPlayers:20} : undefined,
+            settings: c.gameId === "mindbop-draw" ? { rounds: 3, drawTime: 80, chooseTime: 15, maxPlayers: 8, difficulty:"medium" } : c.gameId === "comedy-chaos" ? {rounds:5,answerTime:30,votingTime:15,doubleDown:true,authorGuessing:true,performanceMode:true,maxPlayers:20} : undefined,
           };
           this.rooms.set(code, room);
         } else {

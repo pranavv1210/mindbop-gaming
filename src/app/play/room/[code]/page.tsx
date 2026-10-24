@@ -340,6 +340,27 @@ export default function RoomPage({
                       </select>
                     </label>
                     <label>
+                      Word difficulty
+                      <select
+                        aria-label="Word difficulty"
+                        value={drawSettings.difficulty}
+                        onChange={(e) =>
+                          void act({
+                            type: "configure",
+                            settings: {
+                              ...drawSettings,
+                              difficulty: e.target
+                                .value as DrawSettings["difficulty"],
+                            },
+                          })
+                        }
+                      >
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                      </select>
+                    </label>
+                    <label>
                       Players
                       <select
                         value={drawSettings.maxPlayers}
