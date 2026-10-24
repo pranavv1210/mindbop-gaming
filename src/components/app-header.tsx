@@ -71,7 +71,7 @@ export function AppHeader() {
             </label>
             <label>Your game face</label>
             <div className="avatar-options">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
+              {Array.from({ length: 12 }, (_, i) => i).map((i) => (
                 <button
                   type="button"
                   key={i}

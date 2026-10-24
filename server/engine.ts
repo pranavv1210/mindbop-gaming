@@ -9,6 +9,9 @@ import { wordChainActionSchema } from "./games/word-chain/module";
 import { quizRushActionSchema } from "./games/quiz-rush/module";
 import { addDrawPoints, drawActionSchema } from "./games/draw/module";
 import type { DrawSettings } from "../src/games/draw/types";
+import { mafiaActionSchema } from "./games/mafia/module";
+import { twoTruthsActionSchema } from "./games/two-truths/module";
+import { skyActionSchema } from "./games/sky-scramble/module";
 
 const name = z
   .string()
@@ -20,13 +23,13 @@ const commandSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("create"),
     name,
-    avatar: z.number().int().min(0).max(5),
+    avatar: z.number().int().min(0).max(11),
     gameId: z.string().max(40),
   }),
   z.object({
     type: z.literal("join"),
     name,
-    avatar: z.number().int().min(0).max(5),
+    avatar: z.number().int().min(0).max(11),
     code: z.string().regex(/^[A-Z2-9]{6}$/),
   }),
   z.object({ type: z.literal("ready"), ready: z.boolean() }),
@@ -42,6 +45,9 @@ const commandSchema = z.discriminatedUnion("type", [
       wordChainActionSchema,
       quizRushActionSchema,
       drawActionSchema,
+      mafiaActionSchema,
+      twoTruthsActionSchema,
+      skyActionSchema,
     ]),
   }),
 ]);
@@ -317,6 +323,7 @@ export class Engine {
       .object({
         x: z.number().finite().min(-1).max(1),
         z: z.number().finite().min(-1).max(1),
+        jump: z.boolean().optional(),
       })
       .safeParse(raw);
     if (!input.success) return;
@@ -332,7 +339,7 @@ export class Engine {
       return;
     modules
       .get(room.gameId)!
-      .input?.(room.state, s.id, input.data.x, input.data.z, this.now());
+      .input?.(room.state, s.id, input.data.x, input.data.z, this.now(), input.data.jump);
     room.updatedAt = this.now();
   }
   draw(s: Session, raw: unknown) {

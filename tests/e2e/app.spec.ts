@@ -6,7 +6,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Play together.",
   );
-  await expect(page.locator("#games .game-card")).toHaveCount(3);
+  await expect(page.locator("#games .game-card")).toHaveCount(6);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect
     .poll(() =>
@@ -96,6 +96,10 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
   ).toBeVisible();
   await page.getByRole("button", { name: "Create room", exact: true }).click();
   await expect(page.getByRole("group",{name:"Select a game"})).toBeVisible();
+  const selectedBefore = await page.locator(".game-picker > button.selected strong").textContent();
+  await page.getByRole("button", { name: "Surprise me" }).click();
+  await expect(page.getByRole("button", { name: "Surprise me" })).toBeEnabled();
+  await expect(page.locator(".game-picker > button.selected strong")).not.toHaveText(selectedBefore ?? "");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Join room", exact: true }).click();
   await page.getByLabel("Room code", { exact: true }).fill("AAAAAA");
@@ -120,4 +124,28 @@ test("guest preferences, search, filters, invalid rooms, and accessible dialogs"
       ),
     )
     .toBe(true);
+});
+
+test("every game card route and multiplayer action is reachable", async ({ page }) => {
+  await page.goto("/play");
+  const expectedRoutes = [
+    "/play/game/mindbop-draw",
+    "/play/solo/neon-breach",
+    "/play/solo/echo-grid",
+    "/play/game/mafia",
+    "/play/game/two-truths",
+    "/play/game/sky-scramble",
+  ];
+  const cards = page.locator(".catalog-grid .game-card");
+  await expect(cards).toHaveCount(expectedRoutes.length);
+  for (let index = 0; index < expectedRoutes.length; index += 1) {
+    await cards.nth(index).click();
+    await expect(page).toHaveURL(new RegExp(`${expectedRoutes[index]}$`));
+    await page.goBack();
+    await expect(cards).toHaveCount(expectedRoutes.length);
+  }
+  await page.goto("/play/game/mafia");
+  await page.getByRole("link", { name: /create/i }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mafia", exact: false })).toHaveAttribute("aria-pressed", "true");
 });

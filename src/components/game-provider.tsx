@@ -30,7 +30,7 @@ type Context = {
   connectionError: string;
   send: (command: Command) => Promise<Reply>;
   retry: () => void;
-  move: (x: number, z: number) => void;
+  move: (x: number, z: number, jump?: boolean) => void;
   draw: (input: import("@/games/draw/types").DrawPoint[]) => void;
   onDrawPoints: (listener: (points: import("@/games/draw/types").DrawPoint[]) => void) => () => void;
 };
@@ -131,6 +131,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                   : "Finished"
                 : room.game?.kind === "mindbop-draw"
                   ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
+                : room.game?.kind === "mafia"
+                  ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
+                : room.game?.kind === "two-truths"
+                  ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
+                : room.game?.kind === "sky-scramble"
+                  ? room.game.winnerIds.includes(id) ? "Won" : "Finished"
                 : room.game?.result?.solved
                   ? "Case solved"
                   : "Case reviewed";
@@ -182,9 +188,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         initialized,
         connectionError,
         send,
-        move: (x, z) => {
+        move: (x, z, jump) => {
           const socket = socketRef.current;
-          if (socket?.connected) socket.volatile.emit("move", { x, z });
+          if (socket?.connected) socket.volatile.emit("move", { x, z, jump });
         },
         draw: (input) => {
           const socket = socketRef.current;

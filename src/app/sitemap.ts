@@ -5,9 +5,9 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mindbop-gaming.onre
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publicGames = games
-    .filter((game) => game.status === "playable" && game.route)
+    .filter((game) => game.status === "playable")
     .map((game) => ({
-      url: `${siteUrl}${game.route}`,
+      url: `${siteUrl}${game.route ?? `/play/game/${game.id}`}`,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     }));

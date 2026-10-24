@@ -9,6 +9,7 @@ import {
   History,
   X,
   ChevronDown,
+  Shuffle,
 } from "lucide-react";
 import { useGame } from "@/components/game-provider";
 import { GameCard } from "@/components/game-card";
@@ -31,6 +32,7 @@ export default function Hub() {
   const [sort, setSort] = useState("featured");
   const [selectedGame, setSelectedGame] = useState("mindbop-draw");
   const [busy, setBusy] = useState(false);
+  const [randomizing, setRandomizing] = useState(false);
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<Recent[]>([]);
   // Browser history and saved games are external state, restored after SSR hydration.
@@ -93,8 +95,27 @@ export default function Hub() {
       router.push(game.route);
       return;
     }
-    setSelectedGame(gameId);
-    open("create");
+    router.push(`/play/game/${gameId}`);
+  }
+  async function chooseRandomGame() {
+    if (randomizing) return;
+    const choices = games.filter(
+      (game) => game.mode === "multiplayer" && game.status === "playable",
+    );
+    if (choices.length < 2) return;
+    setRandomizing(true);
+    const initialGame = selectedGame;
+    let cursor = choices.findIndex((game) => game.id === selectedGame);
+    for (let frame = 0; frame < 12; frame += 1) {
+      cursor = (cursor + 1 + Math.floor(Math.random() * (choices.length - 1))) % choices.length;
+      setSelectedGame(choices[cursor].id);
+      await new Promise((resolve) => setTimeout(resolve, 45 + frame * 8));
+    }
+    if (choices[cursor].id === initialGame) {
+      cursor = (cursor + 1) % choices.length;
+      setSelectedGame(choices[cursor].id);
+    }
+    setRandomizing(false);
   }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -308,7 +329,18 @@ export default function Hub() {
           <form onSubmit={submit}>
             {modal === "create" ? (
               <fieldset className="game-picker">
-                <legend>Select a game</legend>
+                <legend>
+                  <span>Select a game</span>
+                  <button
+                    type="button"
+                    className={`random-game ${randomizing ? "spinning" : ""}`}
+                    onClick={() => void chooseRandomGame()}
+                    disabled={randomizing}
+                  >
+                    <Shuffle size={15} />
+                    {randomizing ? "Picking…" : "Surprise me"}
+                  </button>
+                </legend>
                 {games.filter(game=>game.mode==="multiplayer"&&game.status==="playable").map(game=><button type="button" key={game.id} className={selectedGame===game.id?"selected":""} aria-pressed={selectedGame===game.id} onClick={()=>setSelectedGame(game.id)}><GameCover src={game.cover} title={game.name}/><span><strong>{game.name}</strong><small>{game.min}–{game.max} players · {game.duration}</small></span><i/></button>)}
               </fieldset>
             ) : (

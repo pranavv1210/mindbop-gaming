@@ -10,6 +10,9 @@ import { FourRowGame } from "@/games/four-row/four-row-game";
 import { WordChainGame } from "@/games/word-chain/word-chain-game";
 import { QuizRushGame } from "@/games/quiz-rush/quiz-rush-game";
 import { DrawGame } from "@/games/draw/draw-game";
+import { MafiaGame } from "@/games/mafia/mafia-game";
+import { TwoTruthsGame } from "@/games/two-truths/two-truths-game";
+import { SkyScrambleGame } from "@/games/sky-scramble/sky-game";
 import { games } from "@/lib/games";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
@@ -118,7 +121,13 @@ export default function RoomPage({
     room.players.every((p) => p.ready && p.connected);
   const gameInfo = games.find((game) => game.id === room.gameId);
   const rules =
-    room.gameId === "mindbop-draw"
+    room.gameId === "sky-scramble"
+      ? ["Reach the glowing finish arch before qualification fills.","Use WASD or arrows to move and Space to jump; touch controls appear on mobile.","Falling returns you to your latest checkpoint.","Qualify through each shrinking round to become the final winner."]
+      : room.gameId === "mafia"
+      ? ["Your secret role is visible only to you.","At night, special roles choose private actions.","By day, discuss and vote to eliminate a suspect.","Town wins by removing every Mafia member; Mafia wins at parity."]
+      : room.gameId === "two-truths"
+      ? ["On your turn, write three different statements and secretly mark the lie.","Everyone discusses the stories without seeing the answer.","Lock one vote for the statement you think is false.","Correct guesses and convincing bluffs earn points."]
+      : room.gameId === "mindbop-draw"
       ? ["The artist picks one of three fresh words.","Draw with color, brush, or eraser—no letters or clues.","Guess in chat; faster correct answers earn more points.","Everyone draws once per round. Highest score wins."]
       : room.gameId === "word-chain"
       ? [
@@ -271,6 +280,12 @@ export default function RoomPage({
                     : "Everyone’s ready. Your host can start the game."}
             </p>
           </section>
+        ) : room.game?.kind === "sky-scramble" ? (
+          <SkyScrambleGame key={room.game.runId} room={room} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
+        ) : room.game?.kind === "mafia" ? (
+          <MafiaGame key={room.game.runId} room={room} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
+        ) : room.game?.kind === "two-truths" ? (
+          <TwoTruthsGame key={room.game.runId} room={room} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
         ) : room.game?.kind === "mindbop-draw" ? (
           <DrawGame key={room.game.runId} room={room as import("@/lib/protocol").RoomView<import("@/games/draw/types").DrawView>} leave={() => void act({ type: "leave" })} rematch={() => void act({ type: "rematch" })}/>
         ) : room.game?.kind === "four-row" ? (

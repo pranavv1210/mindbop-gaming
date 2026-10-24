@@ -15,13 +15,13 @@ export function readGuest(): Guest {
       saved.name.length <= 24 &&
       Number.isInteger(saved.avatar) &&
       saved.avatar >= 0 &&
-      saved.avatar <= 5
+      saved.avatar <= 11
     )
       return saved;
   } catch {}
   return {
     name: `Guest ${Math.floor(100 + Math.random() * 900)}`,
-    avatar: Math.floor(Math.random() * 6),
+    avatar: Math.floor(Math.random() * 12),
   };
 }
 export function saveGuest(guest: Guest) {

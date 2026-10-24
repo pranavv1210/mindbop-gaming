@@ -3,6 +3,9 @@ import type { FourRowAction, FourRowView } from "../games/four-row/types";
 import type { WordChainAction, WordChainView } from "../games/word-chain/types";
 import type { QuizRushAction, QuizRushView } from "../games/quiz-rush/types";
 import type { DrawAction, DrawPoint, DrawSettings, DrawView } from "../games/draw/types";
+import type { MafiaAction, MafiaView } from "../games/mafia/types";
+import type { TwoTruthsAction, TwoTruthsView } from "../games/two-truths/types";
+import type { SkyAction, SkyView } from "../games/sky-scramble/types";
 export type Player = {
   id: string;
   name: string;
@@ -11,7 +14,7 @@ export type Player = {
   ready: boolean;
 };
 export type GameView =
-  LastGuestView | FourRowView | WordChainView | QuizRushView | DrawView;
+  LastGuestView | FourRowView | WordChainView | QuizRushView | DrawView | MafiaView | TwoTruthsView | SkyView;
 export type RoomView<TGame extends GameView = LastGuestView> = {
   code: string;
   gameId: string;
@@ -33,7 +36,7 @@ export type Command =
   | {
       type: "game";
       action:
-        LastGuestAction | FourRowAction | WordChainAction | QuizRushAction | DrawAction;
+        LastGuestAction | FourRowAction | WordChainAction | QuizRushAction | DrawAction | MafiaAction | TwoTruthsAction | SkyAction;
     };
 export type Envelope = { id: string; command: Command };
 export type ServerEvents = {
@@ -43,6 +46,6 @@ export type ServerEvents = {
 };
 export type ClientEvents = {
   command: (envelope: Envelope, ack: (result: Reply) => void) => void;
-  move: (input: { x: number; z: number }) => void;
+  move: (input: { x: number; z: number; jump?: boolean }) => void;
   draw: (input: DrawPoint[]) => void;
 };

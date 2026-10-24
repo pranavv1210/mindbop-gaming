@@ -8,6 +8,7 @@ export interface GameModule<State = unknown, View extends GameView = GameView> {
     x: number,
     z: number,
     now: number,
+    jump?: boolean,
   ): void;
   act(state: State, playerId: string, action: unknown, now: number): void;
   tick(

@@ -89,10 +89,16 @@ export function Avatar({
     <><path d="M24 7 38 19l-5 20H15l-5-20Z" fill="#f1bd45"/><path d="m13 20 5-9 6 8 6-8 5 9" fill="#ffe58c" stroke="#3d304c" strokeWidth="2" strokeLinejoin="round"/><circle cx="19" cy="28" r="2" fill="#3d304c"/><circle cx="29" cy="28" r="2" fill="#3d304c"/><path d="M21 34c2 1 4 1 6 0" stroke="#3d304c" strokeWidth="2" strokeLinecap="round"/></>,
     <><circle cx="24" cy="24" r="15" fill="#82a7ef"/><path d="M6 28c8 4 28 5 36-5" stroke="#ff9cc0" strokeWidth="5" strokeLinecap="round"/><path d="M34 12 39 8m-2 7 5-1" stroke="#49385d" strokeWidth="2" strokeLinecap="round"/><circle cx="20" cy="21" r="2" fill="#fff"/><circle cx="28" cy="21" r="2" fill="#fff"/></>,
     <><path d="M12 19c0-7 5-12 12-12s12 5 12 12v21H12Z" fill="#f49bb5"/><path d="M12 39c3-5 6-5 9 0 3-5 6-5 9 0 2-4 4-5 6-2" fill="#f49bb5"/><path d="M17 21c4-5 10-5 14 0" stroke="#fff" strokeWidth="5" strokeLinecap="round"/><circle cx="20" cy="22" r="2" fill="#372943"/><circle cx="28" cy="22" r="2" fill="#372943"/><path d="M22 29h4" stroke="#372943" strokeWidth="2" strokeLinecap="round"/></>,
+    <><circle cx="24" cy="25" r="15" fill="#ffbf58"/><path d="M11 21c2-12 24-18 28 1-8-5-20-6-28-1Z" fill="#e85d75"/><circle cx="19" cy="25" r="2" fill="#342842"/><circle cx="29" cy="25" r="2" fill="#342842"/><path d="M19 32c3 3 7 3 10 0" stroke="#342842" strokeWidth="2.4" strokeLinecap="round"/></>,
+    <><path d="M8 29 15 12l9 5 9-5 7 17-5 11H13Z" fill="#6ed6e6"/><path d="m15 12 3-5 6 10 6-10 3 5" stroke="#44365c" strokeWidth="2.3" strokeLinejoin="round"/><circle cx="19" cy="27" r="2" fill="#44365c"/><circle cx="29" cy="27" r="2" fill="#44365c"/><path d="M21 33h6" stroke="#44365c" strokeWidth="2" strokeLinecap="round"/></>,
+    <><rect x="9" y="9" width="30" height="31" rx="15" fill="#a7e36f"/><path d="M14 14c6-7 17-6 21 2" stroke="#4a3a61" strokeWidth="5" strokeLinecap="round"/><circle cx="19" cy="25" r="2.2" fill="#40324f"/><circle cx="29" cy="25" r="2.2" fill="#40324f"/><path d="M20 32c2-2 6-2 8 0" stroke="#40324f" strokeWidth="2" strokeLinecap="round"/></>,
+    <><path d="M11 20c0-8 6-13 13-13s13 5 13 13v18H11Z" fill="#b590ff"/><path d="M13 19c3-11 19-11 22 0" fill="#33284c"/><circle cx="19" cy="25" r="2" fill="#fff"/><circle cx="29" cy="25" r="2" fill="#fff"/><path d="m20 32 4 2 4-2" stroke="#33284c" strokeWidth="2" strokeLinecap="round"/></>,
+    <><path d="M8 26c0-10 7-17 16-17s16 7 16 17v12H8Z" fill="#ff8fbd"/><path d="M8 27c7-2 10-8 12-16 4 7 10 12 20 13" stroke="#54334e" strokeWidth="3" strokeLinecap="round"/><circle cx="19" cy="27" r="2" fill="#54334e"/><circle cx="29" cy="27" r="2" fill="#54334e"/><path d="M20 33c3 2 5 2 8 0" stroke="#54334e" strokeWidth="2" strokeLinecap="round"/></>,
+    <><circle cx="24" cy="25" r="16" fill="#ff8a68"/><path d="M12 20h24M18 16l-5-6m17 6 5-6" stroke="#4b3348" strokeWidth="2.5" strokeLinecap="round"/><rect x="14" y="22" width="9" height="7" rx="3" fill="#3b2a43"/><rect x="25" y="22" width="9" height="7" rx="3" fill="#3b2a43"/><path d="M23 25h2m-5 9h8" stroke="#3b2a43" strokeWidth="2" strokeLinecap="round"/></>,
   ];
   return (
     <span
-      className={`avatar avatar-${index % 6} ${small ? "avatar-small" : ""}`}
+      className={`avatar avatar-${index % characters.length} ${small ? "avatar-small" : ""}`}
       aria-hidden="true"
     >
       <svg viewBox="0 0 48 48" aria-hidden="true">{characters[index % characters.length]}</svg>
