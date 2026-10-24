@@ -495,7 +495,7 @@ export default function RoomPage({
             </div>
             <p className="players-note">
               {room.players.length < 2
-                ? "Invite at least one friend to start. Open an incognito window to try a second player on this computer."
+                ? "Invite at least one friend to start."
                 : !canStart
                   ? "Waiting for everyone to get ready…"
                   : host

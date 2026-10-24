@@ -4283,13 +4283,38 @@ html[data-theme="dark"] .secret-word small { color: #bdc5df; }
 }
 .leader-row small { color: var(--muted); }
 .rules-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
-.tutorial-link { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.tutorial-link { display:inline-flex; min-height:38px; align-items:center; gap:7px; padding:8px 12px; border:1px solid #d8cff0; border-radius:10px; background:#f3efff; color:#6544d4; white-space:nowrap; font-weight:800; transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease; }
+.tutorial-link:hover { border-color:#9c85ef; background:#e9e1ff; color:#4f2ec2; transform:translateY(-1px); }
 .tutorial-progress { display: flex; gap: 7px; margin-bottom: 28px; }
 .tutorial-progress i { width: 100%; height: 5px; border-radius: 9px; background: #e8e3ef; }.tutorial-progress i.active { background: var(--violet); }
 .tutorial-step { min-height: 170px; padding: 26px; border-radius: 18px; background: #f6f2ff; }
 .tutorial-step small { color: var(--violet); font-weight: 800; letter-spacing: .08em; }.tutorial-step h3 { margin: 18px 0 10px; font-size: 23px; line-height: 1.3; }.tutorial-step p { color: var(--muted); line-height: 1.55; }
 .tutorial-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; }
 @media (max-width: 620px) { .account-connect form { grid-template-columns: 1fr; }.section-title { align-items: start; flex-direction: column; }.leader-row { grid-template-columns: 36px 38px 1fr; }.leader-row small { grid-column: 3; }.tutorial-actions { flex-direction: column-reverse; }.tutorial-actions .button { width: 100%; } }
+
+/* Shared theme contrast: interactive hierarchy must remain identical in both themes. */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #9b87ff;outline-offset:3px}
+button:disabled,.button:disabled,input:disabled,select:disabled,textarea:disabled{cursor:not-allowed;opacity:.58}
+input::placeholder,textarea::placeholder{color:#81798d;opacity:1}
+.modal-close{color:var(--ink)}
+.modal>p{color:var(--muted)}
+.tutorial-progress i.active{background:#7657ff;box-shadow:0 0 0 1px #7657ff22,0 0 12px #7657ff38}
+.tutorial-step small{color:#6746dc}
+html[data-theme="dark"] input::placeholder,html[data-theme="dark"] textarea::placeholder{color:#9fa9c7}
+html[data-theme="dark"] .icon-button{border-color:#52618a;background:#25304d;color:#f7f8ff}
+html[data-theme="dark"] .icon-button:hover{border-color:#8171ca;background:#303c5c}
+html[data-theme="dark"] .tutorial-link{border-color:#7565bc;background:#302b59;color:#c9bdff}
+html[data-theme="dark"] .tutorial-link:hover{border-color:#a994ff;background:#3b356d;color:#fff}
+html[data-theme="dark"] .tutorial-progress i{background:#46506c;box-shadow:none}
+html[data-theme="dark"] .tutorial-progress i.active{background:#a58eff;box-shadow:0 0 0 1px #c1b3ff55,0 0 14px #927cff70}
+html[data-theme="dark"] .tutorial-step{border:1px solid #465476;background:#293451;color:#f7f8ff}
+html[data-theme="dark"] .tutorial-step small{color:#b7a7ff}
+html[data-theme="dark"] .tutorial-step p,html[data-theme="dark"] .modal>p{color:#bdc5df}
+html[data-theme="dark"] .tutorial-actions .button-outline{border-color:#66769e;background:#25304d;color:#f7f8ff}
+html[data-theme="dark"] .tutorial-actions .button-outline:hover{border-color:#8f80c8;background:#34415f}
+html[data-theme="dark"] .notice{border:1px solid #816b31;background:#4b4024;color:#ffe49b}
+html[data-theme="dark"] .error-message{border-color:#8d4952;background:#4b2830;color:#ffc2c8}
+html[data-theme="dark"] .success-message,html[data-theme="dark"] .toast{color:#8ce0b4}
 
 /* Comedy Chaos: a compact glowing stage built from transform-only motion. */
 .comedy-settings{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0;padding:18px;border:1px solid var(--line);border-radius:18px;background:#f5f2ff}.comedy-settings h3{grid-column:1/-1;margin:0}.comedy-settings label{font-size:12px;font-weight:800}.comedy-settings select{width:100%;margin-top:6px}.comedy-settings .setting-switch{display:flex;min-height:46px;align-items:center;justify-content:space-between;padding:8px 11px;border:1px solid var(--line);border-radius:12px}.setting-switch input{width:20px;height:20px}

@@ -174,7 +174,19 @@ test("room actions fit at 100% zoom on laptop and phone viewports", async ({ pag
   await page.getByRole("button", { name: "Create room" }).click();
   await expect(page).toHaveURL(/\/play\/room\/[A-Z2-9]{6}/, { timeout: 20_000 });
   const skipTutorial = page.getByRole("button", { name: "Skip tutorial" });
-  if (await skipTutorial.isVisible()) await skipTutorial.click();
+  if (await skipTutorial.isVisible()) {
+    const progress = page.locator(".tutorial-progress i");
+    const darkColors = await progress.evaluateAll((items) => items.map((item) => getComputedStyle(item).backgroundColor));
+    expect(darkColors[0]).not.toBe(darkColors[1]);
+    await page.locator("html").evaluate((html) => html.setAttribute("data-theme", "light"));
+    const lightColors = await progress.evaluateAll((items) => items.map((item) => getComputedStyle(item).backgroundColor));
+    expect(lightColors[0]).not.toBe(lightColors[1]);
+    await page.locator("html").evaluate((html) => html.setAttribute("data-theme", "dark"));
+    await skipTutorial.click();
+  }
+  const tutorialLink = page.getByRole("button", { name: "How to play" });
+  await expect(tutorialLink).toBeVisible();
+  expect(await tutorialLink.evaluate((button) => getComputedStyle(button).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
   const ready = page.getByRole("button", { name: "I’m ready" });
   await expect(ready).toBeVisible();
   await expect.poll(async () => {
