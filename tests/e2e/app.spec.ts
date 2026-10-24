@@ -167,3 +167,25 @@ test("every game card route and multiplayer action is reachable", async ({
   expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
   expect(await page.locator(".room-panel").evaluate((panel) => panel.scrollHeight <= panel.clientHeight + 1)).toBe(true);
 });
+
+test("room actions fit at 100% zoom on laptop and phone viewports", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/play/game/mindbop-draw");
+  await page.getByRole("button", { name: "Create room" }).click();
+  await expect(page).toHaveURL(/\/play\/room\/[A-Z2-9]{6}/, { timeout: 20_000 });
+  const skipTutorial = page.getByRole("button", { name: "Skip tutorial" });
+  if (await skipTutorial.isVisible()) await skipTutorial.click();
+  const ready = page.getByRole("button", { name: "I’m ready" });
+  await expect(ready).toBeVisible();
+  await expect.poll(async () => {
+    const box = await ready.boundingBox();
+    return Boolean(box && box.y >= 0 && box.y + box.height <= 768);
+  }).toBe(true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(ready).toBeVisible();
+  await expect.poll(async () => {
+    const box = await ready.boundingBox();
+    return Boolean(box && box.y >= 0 && box.y + box.height <= 844);
+  }).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+});
