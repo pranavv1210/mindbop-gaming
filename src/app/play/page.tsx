@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
@@ -35,6 +35,10 @@ export default function Hub() {
   const [randomizing, setRandomizing] = useState(false);
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<Recent[]>([]);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const pickerGames = games.filter(
+    (game) => game.mode === "multiplayer" && game.status === "playable",
+  );
   // Browser history and saved games are external state, restored after SSR hydration.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -87,14 +91,14 @@ export default function Hub() {
   }, [room, router]);
   useEffect(() => {
     if (modal !== "create") return;
-    document
-      .querySelector(`[data-game-id="${selectedGame}"]`)
+    carouselRef.current
+      ?.querySelector(`[data-loop="1"][data-game-id="${selectedGame}"]`)
       ?.scrollIntoView({
-        behavior: "smooth",
+        behavior: randomizing ? "smooth" : "auto",
         block: "nearest",
         inline: "center",
       });
-  }, [selectedGame, modal]);
+  }, [selectedGame, modal, randomizing]);
   function open(kind: "create" | "join") {
     setError("");
     setModal(kind);
@@ -109,25 +113,25 @@ export default function Hub() {
   }
   async function chooseRandomGame() {
     if (randomizing) return;
-    const choices = games.filter(
-      (game) => game.mode === "multiplayer" && game.status === "playable",
-    );
+    const choices = pickerGames;
     if (choices.length < 2) return;
     setRandomizing(true);
-    const initialGame = selectedGame;
     let cursor = choices.findIndex((game) => game.id === selectedGame);
-    for (let frame = 0; frame < 12; frame += 1) {
-      cursor =
-        (cursor + 1 + Math.floor(Math.random() * (choices.length - 1))) %
-        choices.length;
-      setSelectedGame(choices[cursor].id);
-      await new Promise((resolve) => setTimeout(resolve, 45 + frame * 8));
-    }
-    if (choices[cursor].id === initialGame) {
+    const landingOffset = 1 + Math.floor(Math.random() * (choices.length - 1));
+    const frames = choices.length * 2 + landingOffset;
+    for (let frame = 0; frame < frames; frame += 1) {
       cursor = (cursor + 1) % choices.length;
       setSelectedGame(choices[cursor].id);
+      await new Promise((resolve) => setTimeout(resolve, 95 + frame * 11));
     }
     setRandomizing(false);
+  }
+  function loopCarousel() {
+    const carousel = carouselRef.current;
+    if (!carousel || randomizing) return;
+    const groupWidth = carousel.scrollWidth / 3;
+    if (carousel.scrollLeft < groupWidth * 0.45) carousel.scrollLeft += groupWidth;
+    else if (carousel.scrollLeft > groupWidth * 1.55) carousel.scrollLeft -= groupWidth;
   }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -353,22 +357,23 @@ export default function Hub() {
                     {randomizing ? "Picking…" : "Surprise me"}
                   </button>
                 </legend>
-                <div
-                  className={`game-picker-carousel ${randomizing ? "is-spinning" : ""}`}
-                >
-                  {games
-                    .filter(
-                      (game) =>
-                        game.mode === "multiplayer" &&
-                        game.status === "playable",
-                    )
-                    .map((game) => (
+                <div className="game-picker-window">
+                  <div
+                    ref={carouselRef}
+                    onScroll={loopCarousel}
+                    className={`game-picker-carousel ${randomizing ? "is-spinning" : ""}`}
+                  >
+                  {[0, 1, 2].flatMap((loop) =>
+                    pickerGames.map((game) => (
                       <button
                         type="button"
                         data-game-id={game.id}
-                        key={game.id}
-                        className={selectedGame === game.id ? "selected" : ""}
-                        aria-pressed={selectedGame === game.id}
+                        data-loop={loop}
+                        key={`${loop}-${game.id}`}
+                        className={selectedGame === game.id ? (loop === 1 ? "selected" : "loop-selected") : ""}
+                        aria-pressed={loop === 1 ? selectedGame === game.id : undefined}
+                        aria-hidden={loop !== 1}
+                        tabIndex={loop === 1 ? 0 : -1}
                         onClick={() => setSelectedGame(game.id)}
                       >
                         <div className="picker-cover">
@@ -382,7 +387,9 @@ export default function Hub() {
                         </span>
                         <i />
                       </button>
-                    ))}
+                    )),
+                  )}
+                  </div>
                 </div>
               </fieldset>
             ) : (
