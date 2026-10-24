@@ -17,6 +17,7 @@ import { GameCard } from "@/components/game-card";
 import { Feedback } from "@/components/feedback";
 import { GameCover } from "@/components/game-cover";
 import { games } from "@/lib/games";
+const marqueeLines = ["Good friends", "Great games", "Unexpected betrayals", "One more round?", "Zero downloads", "Instant private rooms", "Bragging rights included", "Chaos on every screen"];
 export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
@@ -116,17 +117,16 @@ export default function Home() {
           </div>
         </section>
         <div className="marquee" aria-hidden="true">
-          <div>
-            <span>Good friends</span>
-            <i>✦</i>
-            <span>Great games</span>
-            <i>✦</i>
-            <span>Unexpected betrayals</span>
-            <i>✦</i>
-            <span>One more round?</span>
-            <i>✦</i>
-            <span>Good friends</span>
-            <i>✦</i>
+          <div className="marquee-track">
+            {[0, 1].map((copy) => (
+              <div className="marquee-group" key={copy}>
+                {marqueeLines.map((line) => (
+                  <span className="marquee-item" key={`${copy}-${line}`}>
+                    <b>{line}</b><i>✦</i>
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
         <section className="games-section container" id="games">
@@ -135,19 +135,24 @@ export default function Home() {
               <span className="section-kicker">
                 <Sparkles size={16} /> Pick your kind of chaos
               </span>
-              <h2>One canvas. Endless bad ideas.</h2>
+              <h2>A few favorites. A lot more waiting.</h2>
             </div>
             <Link href="/play" className="text-link">
-              Explore the game hub <ArrowUpRight size={18} />
+              Explore more games <ArrowUpRight size={18} />
             </Link>
           </div>
           <p className="section-intro">
-            Pick a word, draw it your way, and watch your friends guess in real time.
+            Start with a featured favorite, or open the full game hub to find the right kind of chaos.
           </p>
           <div className="game-grid catalog-grid">
-            {games.map((game) => (
+            {games.slice(0, 3).map((game) => (
               <GameCard key={game.id} game={game} />
             ))}
+          </div>
+          <div className="games-explore-more">
+            <Link href="/play" className="button button-primary button-large">
+              Explore all games <ArrowUpRight size={20} />
+            </Link>
           </div>
         </section>
         <section className="usp-section container" aria-labelledby="usp-title">

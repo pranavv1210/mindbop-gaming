@@ -180,7 +180,7 @@ export default function RoomPage({
                       "Block threats early—one missed move can end the round.",
                     ];
   return (
-    <main id="main" className="container app-main">
+    <main id="main" className="container app-main room-viewport">
       <div className="room-topline">
         <button
           className="text-link plain-button"
@@ -207,7 +207,7 @@ export default function RoomPage({
           {error}
         </p>
       )}
-      <div className={room.phase === "waiting" ? "room-layout" : ""}>
+      <div className={room.phase === "waiting" ? "room-layout" : "active-game-slot"}>
         {room.phase === "waiting" ? (
           <section className="room-panel">
             <span className="room-eyebrow">

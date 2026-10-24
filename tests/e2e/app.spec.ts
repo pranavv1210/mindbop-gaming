@@ -6,7 +6,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Play together.",
   );
-  await expect(page.locator("#games .game-card")).toHaveCount(7);
+  await expect(page.locator("#games .game-card")).toHaveCount(3);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect
     .poll(() =>
@@ -20,6 +20,7 @@ test("landing navigation, email feedback, and responsive layouts", async ({
     .toBe(3);
   await page.getByRole("link", { name: "Explore games", exact: true }).click();
   await expect(page).toHaveURL(/#games$/);
+  await expect(page.getByRole("link", { name: "Explore all games" })).toHaveAttribute("href", "/play");
   await expect(
     page.getByRole("button", { name: "Send your idea" }),
   ).toBeEnabled();
@@ -155,16 +156,14 @@ test("every game card route and multiplayer action is reachable", async ({
     await expect(cards).toHaveCount(expectedRoutes.length);
   }
   await page.goto("/play/game/mafia");
-  await page.getByRole("link", { name: /create/i }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Mafia", exact: false }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Create room" })
-    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: /create room/i }).click();
   await expect(page).toHaveURL(/\/play\/room\/[A-Z2-9]{6}/, {
     timeout: 20_000,
   });
+  await expect(page.getByRole("group", { name: "Select a game" })).toHaveCount(0);
+  const skipTutorial = page.getByRole("button", { name: "Skip tutorial" });
+  if (await skipTutorial.isVisible()) await skipTutorial.click();
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
+  expect(await page.locator(".room-panel").evaluate((panel) => panel.scrollHeight <= panel.clientHeight + 1)).toBe(true);
 });
