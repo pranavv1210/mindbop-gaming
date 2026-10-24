@@ -169,7 +169,7 @@ test("every game card route and multiplayer action is reachable", async ({
 });
 
 test("room actions fit at 100% zoom on laptop and phone viewports", async ({ page }) => {
-  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.setViewportSize({ width: 1920, height: 925 });
   await page.goto("/play/game/mindbop-draw");
   await page.getByRole("button", { name: "Create room" }).click();
   await expect(page).toHaveURL(/\/play\/room\/[A-Z2-9]{6}/, { timeout: 20_000 });
@@ -177,6 +177,12 @@ test("room actions fit at 100% zoom on laptop and phone viewports", async ({ pag
   if (await skipTutorial.isVisible()) await skipTutorial.click();
   const ready = page.getByRole("button", { name: "I’m ready" });
   await expect(ready).toBeVisible();
+  await expect.poll(async () => {
+    const box = await ready.boundingBox();
+    return Boolean(box && box.y >= 0 && box.y + box.height <= 925);
+  }).toBe(true);
+  await expect(page.locator(".rules ol")).toBeHidden();
+  await page.setViewportSize({ width: 1366, height: 768 });
   await expect.poll(async () => {
     const box = await ready.boundingBox();
     return Boolean(box && box.y >= 0 && box.y + box.height <= 768);
