@@ -2,7 +2,7 @@ import Link from "next/link";
 export function Brand({ light = false }: { light?: boolean }) {
   return (
     <Link
-      href="/"
+      href="/#top"
       className={`brand ${light ? "brand-light" : ""}`}
       aria-label="MindBop home"
     >

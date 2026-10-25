@@ -31,6 +31,13 @@ test("two players create, join, draw, guess, score, and retain a responsive game
     const skip = page.getByRole("button", { name: "Skip tutorial" });
     if (await skip.isVisible()) await skip.click();
   }
+  await guest.getByRole("button", { name: "Edit your profile" }).click();
+  const profile = guest.getByRole("dialog");
+  await profile.getByLabel("Display name").fill("Nova");
+  await profile.getByRole("button", { name: "Avatar 10" }).click();
+  await profile.getByRole("button", { name: "Save profile" }).click();
+  await expect(guest.getByRole("button", { name: "Edit your profile" })).toContainText("Nova");
+  await expect(host.getByText("Nova", { exact: true })).toBeVisible();
   const guestReady = guest.getByRole("button", { name: "I’m ready" });
   await guestReady.click();
   await expect(
@@ -44,6 +51,8 @@ test("two players create, join, draw, guess, score, and retain a responsive game
   await choice.click();
   await expect(host.locator(".secret-word")).toContainText(word);
   await expect(guest.getByLabel("Guess the word")).toBeEnabled();
+  await expect(guest.getByRole("button", { name: "Paint bucket" })).toHaveCount(0);
+  await expect(host.getByLabel("Guess the word")).toHaveCount(0);
   await guest.getByLabel("Guess the word").fill(word.slice(0, -1));
   await guest.getByRole("button", { name: "Send guess" }).click();
   await expect(guest.getByText(/very close/i)).toBeVisible();
@@ -72,6 +81,10 @@ test("two players create, join, draw, guess, score, and retain a responsive game
   await expect(
     host.getByRole("button", { name: "Paint bucket" }),
   ).toBeVisible();
+  const undoBox = await host.getByRole("button", { name: "Undo last stroke" }).boundingBox();
+  expect((undoBox?.y ?? 2000) + (undoBox?.height ?? 0)).toBeLessThanOrEqual(
+    await host.evaluate(() => innerHeight),
+  );
   const guessBox = await guest.getByLabel("Guess the word").boundingBox();
   expect((guessBox?.y ?? 900) + (guessBox?.height ?? 0)).toBeLessThanOrEqual(
     844,

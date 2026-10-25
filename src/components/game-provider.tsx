@@ -183,6 +183,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         updateGuest: (g) => {
           saveGuest(g);
           setGuest(g);
+          if (room) {
+            setRoom((current) =>
+              current
+                ? {
+                    ...current,
+                    players: current.players.map((player) =>
+                      player.id === id ? { ...player, ...g } : player,
+                    ),
+                  }
+                : current,
+            );
+            void send({ type: "profile", ...g });
+          }
         },
         id,
         room,

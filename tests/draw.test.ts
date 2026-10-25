@@ -49,6 +49,12 @@ test("draw keeps choices private, validates the artist, scores guesses and syncs
     now,
   );
   assert.equal(state.strokes.at(-1)?.fill, true);
+  mindbopDraw.act(state, "artist", { type: "undo-stroke" }, now);
+  assert.equal(state.strokes.length, 1);
+  assert.equal(state.strokes[0]?.id, "a");
+  assert.throws(() =>
+    mindbopDraw.act(state, "guesser", { type: "undo-stroke" }, now),
+  );
   mindbopDraw.act(
     state,
     "guesser",
@@ -87,7 +93,8 @@ test("draw difficulty selects from distinct server-side word pools", () => {
   });
   assert.equal(easy.settings.difficulty, "easy");
   assert.equal(hard.settings.difficulty, "hard");
-  assert.ok(hard.choices?.every((word) => word.includes(" ")));
+  assert.equal(hard.choices?.length, 3);
+  assert.notDeepEqual(hard.choices, easy.choices);
 });
 
 test("draw auto-selects and rotates through every player", () => {

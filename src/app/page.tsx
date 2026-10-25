@@ -47,7 +47,7 @@ export default function Home() {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-        <section className="hero container">
+        <section id="top" className="hero container">
           <div className="hero-copy">
             <div className="hero-note">
               <span className="tiny-spark">✦</span> A good time, just a link

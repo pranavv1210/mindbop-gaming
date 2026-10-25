@@ -20,6 +20,7 @@ import { games } from "@/lib/games";
 import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
 import { GameTutorial } from "@/components/game-tutorial";
+import { PostGameFeedback } from "@/components/post-game-feedback";
 export default function RoomPage({
   params,
 }: {
@@ -598,6 +599,13 @@ export default function RoomPage({
             </button>
           </div>
         </Modal>
+      )}
+      {room.phase === "completed" && room.game && player && (
+        <PostGameFeedback
+          matchId={room.game.runId}
+          gameName={gameInfo?.name ?? "MindBop"}
+          playerName={player.name}
+        />
       )}
     </main>
   );

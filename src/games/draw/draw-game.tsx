@@ -20,6 +20,8 @@ import {
   Users,
 } from "lucide-react";
 import { useGame } from "@/components/game-provider";
+import { Avatar } from "@/components/art";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { RoomView } from "@/lib/protocol";
 import type { DrawAction, DrawPoint, DrawView } from "./types";
 
@@ -248,7 +250,7 @@ export function DrawGame({
     );
   }
   return (
-    <section className="draw-game">
+    <section className={`draw-game ${drawer ? "is-drawer" : "is-guesser"}`}>
       <header className="draw-bar">
         <div>
           <small>
@@ -282,7 +284,7 @@ export function DrawGame({
                 className={`${p.id === game.drawerId ? "artist" : ""} ${game.guessed.includes(p.id) ? "guessed" : ""}`}
                 key={p.id}
               >
-                <span>{p.name.slice(0, 1).toUpperCase()}</span>
+                <span><Avatar index={p.avatar} /></span>
                 <p>
                   <strong>{p.name}</strong>
                   <small>
@@ -352,7 +354,7 @@ export function DrawGame({
               </div>
             )}
           </div>
-          <div className="draw-tools" aria-label="Drawing tools">
+          {drawer && <div className="draw-tools" aria-label="Drawing tools">
             <div className="tool-modes">
               <button
                 className={tool === "brush" ? "active" : ""}
@@ -430,15 +432,15 @@ export function DrawGame({
               />
             </label>
             <button
-              aria-label="Clear canvas"
-              disabled={!drawer}
-              onClick={() => void action({ type: "clear-canvas" })}
+              aria-label="Undo last stroke"
+              title="Undo last stroke"
+              onClick={() => { stop(); void action({ type: "undo-stroke" }); }}
             >
               <RotateCcw />
             </button>
-          </div>
+          </div>}
         </main>
-        <aside className="draw-chat">
+        {!drawer && <aside className="draw-chat">
           <h2>Guesses</h2>
           <div
             className="chat-log"
@@ -479,7 +481,7 @@ export function DrawGame({
               <Send />
             </button>
           </form>
-        </aside>
+        </aside>}
       </div>
       {error && (
         <p className="error-message" role="alert">
@@ -488,6 +490,7 @@ export function DrawGame({
       )}
       <footer className="draw-footer">
         <span>Room {room.code}</span>
+        <ThemeToggle />
         <button
           onClick={() =>
             navigator

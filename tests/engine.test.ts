@@ -77,6 +77,20 @@ test("four in a row enforces turns and detects a winning line", () => {
   assert.equal(fourRow.finished(state), true);
   assert.throws(() => drop("violet", 4), /over/);
 });
+
+test("profile edits are reflected in the shared room view immediately", () => {
+  const { engine, host, guest, act, create, join } = setup();
+  join(create());
+  assert.equal(
+    act(guest, { type: "profile", name: "Nova", avatar: 9 }).ok,
+    true,
+  );
+  const hostView = engine.view(host)!;
+  const guestView = engine.view(guest)!;
+  assert.equal(hostView.players.find((player) => player.id === guest.id)?.name, "Nova");
+  assert.equal(hostView.players.find((player) => player.id === guest.id)?.avatar, 9);
+  assert.deepEqual(hostView.players, guestView.players);
+});
 test("word chain validates links, repeats, turns, and the winning score", () => {
   const state = wordChain.create(["one", "two"], 0);
   wordChain.act(state, "one", { type: "word", word: "spark" }, 0);

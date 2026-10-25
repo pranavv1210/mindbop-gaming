@@ -158,6 +158,7 @@ export const drawActionSchema = z.discriminatedUnion("type", [
     text: z.string().trim().min(1).max(80),
   }),
   z.object({ type: z.literal("clear-canvas") }),
+  z.object({ type: z.literal("undo-stroke") }),
   z.object({
     type: z.literal("fill-canvas"),
     color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
@@ -336,6 +337,14 @@ export const mindbopDraw: GameModule<State, DrawView> = {
       if (state.phase !== "drawing" || playerId !== state.drawerId)
         throw new Error("Only the current artist can clear the canvas.");
       state.strokes = [];
+      state.canvasVersion++;
+      return;
+    }
+    if (action.type === "undo-stroke") {
+      if (state.phase !== "drawing" || playerId !== state.drawerId)
+        throw new Error("Only the current artist can undo a stroke.");
+      const lastId = state.strokes.at(-1)?.id;
+      if (lastId) state.strokes = state.strokes.filter((point) => point.id !== lastId);
       state.canvasVersion++;
       return;
     }

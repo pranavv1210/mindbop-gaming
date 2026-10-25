@@ -35,6 +35,7 @@ const commandSchema = z.discriminatedUnion("type", [
     code: z.string().regex(/^[A-Z2-9]{6}$/),
   }),
   z.object({ type: z.literal("ready"), ready: z.boolean() }),
+  z.object({ type: z.literal("profile"), name, avatar: z.number().int().min(0).max(11) }),
   z.object({ type: z.literal("configure"), settings: z.union([
     z.object({ rounds:z.number().int().min(1).max(5), drawTime:z.number().int().min(30).max(120), chooseTime:z.number().int().min(10).max(30), maxPlayers:z.number().int().min(2).max(8), difficulty:z.enum(["easy","medium","hard"]) }),
     z.object({rounds:z.union([z.literal(3),z.literal(5),z.literal(7),z.literal(10)]),answerTime:z.union([z.literal(20),z.literal(30),z.literal(45),z.literal(60)]),votingTime:z.union([z.literal(10),z.literal(15),z.literal(20),z.literal(30)]),doubleDown:z.boolean(),authorGuessing:z.boolean(),performanceMode:z.boolean(),maxPlayers:z.literal(20)})
@@ -257,6 +258,10 @@ export class Engine {
         if (!p || !p.connected)
           throw new Error("Reconnect to your room first.");
         const mod = modules.get(room.gameId)!;
+        if (c.type === "profile") {
+          p.name = c.name;
+          p.avatar = c.avatar;
+        }
         if (c.type === "start" || c.type === "rematch") {
           if (room.hostId !== s.id)
             throw new Error("Only the host can do that.");

@@ -31,6 +31,7 @@ export type Reply = { ok: true; code?: string } | { ok: false; error: string };
 export type Command =
   | { type: "create"; name: string; avatar: number; gameId: string }
   | { type: "join"; code: string; name: string; avatar: number }
+  | { type: "profile"; name: string; avatar: number }
   | { type: "ready"; ready: boolean }
   | { type: "configure"; settings: DrawSettings | ComedySettings }
   | { type: "start" | "leave" | "rematch" }
