@@ -21,6 +21,7 @@ import { Modal } from "@/components/modal";
 import type { Command } from "@/lib/protocol";
 import { GameTutorial } from "@/components/game-tutorial";
 import { PostGameFeedback } from "@/components/post-game-feedback";
+import { GameFullscreen } from "@/components/game-fullscreen";
 export default function RoomPage({
   params,
 }: {
@@ -208,7 +209,8 @@ export default function RoomPage({
           {error}
         </p>
       )}
-      <div className={room.phase === "waiting" ? "room-layout" : "active-game-slot"}>
+      <div id="active-game" className={room.phase === "waiting" ? "room-layout" : "active-game-slot"}>
+        {room.phase !== "waiting" && <GameFullscreen targetId="active-game" />}
         {room.phase === "waiting" ? (
           <section className="room-panel">
             <span className="room-eyebrow">
@@ -495,8 +497,8 @@ export default function RoomPage({
               )}
             </div>
             <p className="players-note">
-              {room.players.length < 2
-                ? "Invite at least one friend to start."
+              {room.players.length < (gameInfo?.min ?? 2)
+                ? `${gameInfo?.name ?? "This game"} needs at least ${gameInfo?.min ?? 2} players. Invite ${(gameInfo?.min ?? 2) - room.players.length} more to start.`
                 : !canStart
                   ? "Waiting for everyone to get ready…"
                   : host

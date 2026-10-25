@@ -278,11 +278,9 @@ export class Engine {
         if (c.type === "start") {
           if (room.phase !== "waiting")
             throw new Error("This game has already started.");
-          if (
-            room.players.filter((p) => p.connected).length <
-            (games.find((g) => g.id === room.gameId)?.min ?? 2)
-          )
-            throw new Error("You need at least 2 connected players.");
+          const minimumPlayers = games.find((g) => g.id === room.gameId)?.min ?? 2;
+          if (room.players.filter((p) => p.connected).length < minimumPlayers)
+            throw new Error(`You need at least ${minimumPlayers} connected players.`);
           if (room.players.some((p) => !p.connected || !p.ready))
             throw new Error("Everyone needs to be connected and ready.");
           room.state = mod.create(

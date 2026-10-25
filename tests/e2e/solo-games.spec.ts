@@ -11,7 +11,11 @@ test("Neon Breach is playable and responsive",async({page})=>{
 });
 
 test("Echo Grid advances after a correct sequence",async({page})=>{
- await page.goto("/play/solo/echo-grid");await page.getByRole("button",{name:"Enter the grid"}).click();
+ await page.setViewportSize({width:1366,height:768});await page.goto("/play/solo/echo-grid");
+ await expect(page.getByRole("button",{name:"Play in full screen"})).toBeVisible();
+ const cells=page.locator(".echo-board button");await expect(cells).toHaveCount(16);
+ const lastCell=await cells.last().boundingBox();expect((lastCell?.y??9999)+(lastCell?.height??0)).toBeLessThanOrEqual(768);
+ await page.getByRole("button",{name:"Enter the grid"}).click();
  const button=page.getByRole("button",{name:"Pulse 5"});await expect(button).toBeEnabled({timeout:3000});await button.click();
  await expect(page.getByText("Level 2",{exact:true})).toBeVisible();
 });

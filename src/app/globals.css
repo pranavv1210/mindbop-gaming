@@ -4496,3 +4496,36 @@ html[data-theme="dark"] .rating-stars button.selected{background:#4b3d18;color:#
   .rating-stars{gap:4px}
   .rating-stars button{width:46px;height:46px}
 }
+
+/* One viewport, every control: shared active-game sizing and full-screen access. */
+.game-fullscreen{position:fixed;z-index:40;right:14px;bottom:10px;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 12px;border:1px solid #ffffff3d;border-radius:11px;background:#171d35e8;color:#fff;font:800 11px/1 inherit;box-shadow:0 8px 24px #05071255;backdrop-filter:blur(12px)}
+.game-fullscreen svg{width:17px;height:17px}
+.active-game-slot:fullscreen,.solo-shell:fullscreen{width:100vw;height:100vh;padding:0;background:#0b1020}
+.active-game-slot:fullscreen>*{height:100%;border-radius:0!important}
+.solo-shell:fullscreen .breach-stage,.solo-shell:fullscreen .echo-stage{height:calc(100vh - 92px);max-height:none}
+.draw-players>div>span .avatar{width:32px;height:32px}
+.draw-players>div>span{overflow:hidden}
+.solo-shell{height:100dvh;min-height:0;overflow:hidden}
+.breach-stage,.echo-stage{height:min(720px,calc(100dvh - 120px));min-height:0}
+.echo-stage{display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding-bottom:12px}
+.echo-board{width:min(55dvh,590px,calc(100% - 28px));height:auto;max-width:none;max-height:none;margin:2px auto;aspect-ratio:1}
+.echo-strikes{min-height:18px}
+
+@media(max-height:760px){
+  .solo-shell{padding:10px}
+  .solo-header{margin-bottom:8px;padding-block:8px}
+  .breach-stage,.echo-stage{height:calc(100dvh - 84px)}
+  .echo-status{padding:10px 18px}
+  .echo-board{gap:7px}
+  .active-game-slot .mafia-hud,.active-game-slot .truth-hud,.active-game-slot .comedy-hud{min-height:52px;padding-block:5px}
+  .active-game-slot .mafia-stage,.active-game-slot .truth-layout>main,.active-game-slot .comedy-layout>main{padding:12px 18px}
+}
+@media(max-width:650px){
+  .solo-shell{height:100dvh;padding:6px}
+  .solo-header{margin-bottom:6px;padding:8px 11px}
+  .breach-stage,.echo-stage{height:calc(100dvh - 72px);min-height:0}
+  .echo-status{padding:10px 12px}
+  .echo-board{width:min(55dvh,calc(100vw - 24px));height:auto;margin:auto;gap:6px}
+  .game-fullscreen{right:8px;bottom:7px;width:38px;justify-content:center;padding:7px}
+  .game-fullscreen span{display:none}
+}

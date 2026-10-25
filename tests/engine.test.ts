@@ -91,6 +91,23 @@ test("profile edits are reflected in the shared room view immediately", () => {
   assert.equal(hostView.players.find((player) => player.id === guest.id)?.avatar, 9);
   assert.deepEqual(hostView.players, guestView.players);
 });
+
+test("start errors report each game's actual minimum player count", () => {
+  const engine = new Engine(() => 1000);
+  const host = engine.session();
+  engine.connect(host, "host");
+  const act = (command: Command) =>
+    engine.command(host, { id: randomUUID(), command });
+  assert.equal(
+    act({ type: "create", name: "Host", avatar: 0, gameId: "mafia" }).ok,
+    true,
+  );
+  act({ type: "ready", ready: true });
+  assert.deepEqual(act({ type: "start" }), {
+    ok: false,
+    error: "You need at least 6 connected players.",
+  });
+});
 test("word chain validates links, repeats, turns, and the winning score", () => {
   const state = wordChain.create(["one", "two"], 0);
   wordChain.act(state, "one", { type: "word", word: "spark" }, 0);
