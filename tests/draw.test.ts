@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mindbopDraw, addDrawPoints } from "../server/games/draw/module";
+import { mindbopDraw, addDrawPoints, DRAW_WORDS } from "../server/games/draw/module";
 
 test("draw keeps choices private, validates the artist, scores guesses and syncs strokes", () => {
   let now = 1_000;
@@ -95,6 +95,11 @@ test("draw difficulty selects from distinct server-side word pools", () => {
   assert.equal(hard.settings.difficulty, "hard");
   assert.equal(hard.choices?.length, 3);
   assert.notDeepEqual(hard.choices, easy.choices);
+  assert.ok(easy.choices?.every((word) => /^\p{L}+$/u.test(word)));
+  assert.ok(hard.choices?.every((word) => /^\p{L}+$/u.test(word)));
+  assert.ok(
+    Object.values(DRAW_WORDS).flat().every((word) => /^\p{L}+$/u.test(word)),
+  );
 });
 
 test("draw auto-selects and rotates through every player", () => {
