@@ -30,7 +30,7 @@ type Context = {
   connectionError: string;
   send: (command: Command) => Promise<Reply>;
   retry: () => void;
-  move: (x: number, z: number, jump?: boolean) => void;
+  move: (x: number, z: number, jump?: boolean, sprint?: boolean) => void;
   draw: (input: import("@/games/draw/types").DrawPoint[]) => void;
   onDrawPoints: (listener: (points: import("@/games/draw/types").DrawPoint[]) => void) => () => void;
 };
@@ -203,9 +203,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         initialized,
         connectionError,
         send,
-        move: (x, z, jump) => {
+        move: (x, z, jump, sprint) => {
           const socket = socketRef.current;
-          if (socket?.connected) socket.volatile.emit("move", { x, z, jump });
+          if (socket?.connected) socket.volatile.emit("move", { x, z, jump, sprint });
         },
         draw: (input) => {
           const socket = socketRef.current;

@@ -14,6 +14,7 @@ import { twoTruthsActionSchema } from "./games/two-truths/module";
 import { skyActionSchema } from "./games/sky-scramble/module";
 import { comedyActionSchema } from "./games/comedy-chaos/module";
 import type { ComedySettings } from "../src/games/comedy-chaos/types";
+import { arenaActionSchema } from "./games/arena/module";
 
 const name = z
   .string()
@@ -55,6 +56,7 @@ const commandSchema = z.discriminatedUnion("type", [
       twoTruthsActionSchema,
       skyActionSchema,
       comedyActionSchema,
+      arenaActionSchema,
     ]),
   }),
 ]);
@@ -333,6 +335,7 @@ export class Engine {
         x: z.number().finite().min(-1).max(1),
         z: z.number().finite().min(-1).max(1),
         jump: z.boolean().optional(),
+        sprint: z.boolean().optional(),
       })
       .safeParse(raw);
     if (!input.success) return;
@@ -348,7 +351,7 @@ export class Engine {
       return;
     modules
       .get(room.gameId)!
-      .input?.(room.state, s.id, input.data.x, input.data.z, this.now(), input.data.jump);
+      .input?.(room.state, s.id, input.data.x, input.data.z, this.now(), input.data.jump, input.data.sprint);
     room.updatedAt = this.now();
   }
   draw(s: Session, raw: unknown) {
