@@ -38,6 +38,6 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.5",
     "prettier": "^3.9.8",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   }
 }
