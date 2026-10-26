@@ -16,12 +16,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const gameRoutes = games
     .filter((game) => game.status === "playable")
-    .flatMap((game) => {
-      const routes = [{ path: `/play/game/${game.id}`, priority: 0.8 }];
-      if (game.route) routes.push({ path: game.route, priority: 0.8 });
-      return routes;
-    })
-    .map((route) => ({ ...route, changeFrequency: "monthly" as const }));
+    .map((game) => ({
+      path: game.mode === "solo" && game.route ? game.route : `/play/game/${game.id}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    }));
 
   const routes = [...staticRoutes, ...gameRoutes];
   const seen = new Set<string>();
