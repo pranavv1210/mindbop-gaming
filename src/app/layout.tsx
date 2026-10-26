@@ -8,11 +8,13 @@ import "@fontsource/dm-sans/latin-400.css";
 import "@fontsource/dm-sans/latin-500.css";
 import "@fontsource/dm-sans/latin-600.css";
 import "./globals.css";
+import "./mindbop-theme.css";
 import "@/games/last-guest/last-guest.css";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mindbop-gaming.onrender.com";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://mindbop-gaming.onrender.com",
-  ),
+  metadataBase: new URL(siteUrl),
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   title: {
@@ -28,12 +30,16 @@ export const metadata: Metadata = {
     "online party games",
     "cooperative games",
     "social deduction games",
+    "browser games",
+    "free online games with friends",
   ],
   openGraph: {
     type: "website",
     title: "MindBop — Multiplayer games for friends",
     description:
       "Private rooms, one invite link, and browser games built for groups.",
+    url: siteUrl,
+    siteName: "MindBop",
     images: ["/images/games/mindbop-draw-v2.webp"],
   },
   twitter: {
@@ -44,6 +50,7 @@ export const metadata: Metadata = {
     images: ["/images/games/mindbop-draw-v2.webp"],
   },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
