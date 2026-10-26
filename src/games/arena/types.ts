@@ -18,12 +18,19 @@ export type ArenaPlayer = {
   deaths: number;
   score: number;
   abilityReadyAt: number;
+  stamina: number;
+  shieldUntil: number;
+  cloakedUntil: number;
+  spawnProtectedUntil: number;
 };
+
+export type ArenaMapId = "neon-yard" | "skyline" | "reactor";
 
 export type ArenaView = {
   kind: "mindbop-arena";
   runId: string;
   phase: "live";
+  mapId: ArenaMapId;
   playerIds: string[];
   players: Record<string, ArenaPlayer>;
   zone: { x: number; z: number; radius: number; progress: number; owner: ArenaTeam | null };
@@ -34,13 +41,7 @@ export type ArenaView = {
 };
 
 export type ArenaAction =
-  | {
-      type: "shoot";
-      weapon: ArenaWeapon;
-      yaw: number;
-      pitch: number;
-      shotAt: number;
-    }
+  | { type: "shoot"; weapon: ArenaWeapon; yaw: number; pitch: number; shotAt: number }
   | { type: "ability" }
   | { type: "weapon"; weapon: ArenaWeapon }
   | { type: "hero"; hero: ArenaHero };
