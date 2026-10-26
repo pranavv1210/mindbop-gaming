@@ -1,6 +1,7 @@
 export type ArenaTeam = "ember" | "azure";
 export type ArenaWeapon = "pulse" | "scatter" | "rail";
 export type ArenaHero = "striker" | "warden" | "ghost" | "medic";
+export type ArenaCardId = "overclock" | "bulwark" | "ghoststep" | "sharpshot";
 
 export type ArenaPlayer = {
   id: string;
@@ -22,6 +23,8 @@ export type ArenaPlayer = {
   shieldUntil: number;
   cloakedUntil: number;
   spawnProtectedUntil: number;
+  cards: ArenaCardId[];
+  pendingCards: ArenaCardId[];
 };
 
 export type ArenaMapId = "neon-yard" | "skyline" | "reactor";
@@ -29,7 +32,7 @@ export type ArenaMapId = "neon-yard" | "skyline" | "reactor";
 export type ArenaView = {
   kind: "mindbop-arena";
   runId: string;
-  phase: "live";
+  phase: "live" | "finished";
   mapId: ArenaMapId;
   playerIds: string[];
   players: Record<string, ArenaPlayer>;
@@ -44,4 +47,5 @@ export type ArenaAction =
   | { type: "shoot"; weapon: ArenaWeapon; yaw: number; pitch: number; shotAt: number }
   | { type: "ability" }
   | { type: "weapon"; weapon: ArenaWeapon }
-  | { type: "hero"; hero: ArenaHero };
+  | { type: "hero"; hero: ArenaHero }
+  | { type: "card"; card: ArenaCardId };
