@@ -207,6 +207,37 @@ const TONES = [
   "#f36bd4",
   "#f3f4ff",
 ];
+
+function randomCell(excluded: Set<number> = new Set()) {
+  const available = TONES.map((_, index) => index).filter(
+    (index) => !excluded.has(index),
+  );
+  if (available.length === 0) return Math.floor(Math.random() * TONES.length);
+
+  // Prefer the browser's cryptographic RNG when available so consecutive
+  // games are not driven by one predictable sequence.
+  if (typeof window !== "undefined" && window.crypto?.getRandomValues) {
+    const values = new Uint32Array(1);
+    window.crypto.getRandomValues(values);
+    return available[values[0] % available.length];
+  }
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+function createEchoSequence(length: number) {
+  const safeLength = Math.max(1, Math.min(length, TONES.length));
+  const sequence: number[] = [];
+  const used = new Set<number>();
+
+  while (sequence.length < safeLength) {
+    const cell = randomCell(used);
+    sequence.push(cell);
+    used.add(cell);
+  }
+
+  return sequence;
+}
+
 function EchoGrid() {
   const [phase, setPhase] = useState<"idle" | "show" | "input" | "over">(
       "idle",
@@ -217,13 +248,14 @@ function EchoGrid() {
     [active, setActive] = useState<number | null>(null),
     [strikes, setStrikes] = useState(0),
     [muted, setMuted] = useState(false);
-  const timers = useRef<number[]>([]),
-    seed = useRef(0x9e3779b9);
+  const timers = useRef<number[]>([]);
   const [best, saveBest] = useBest("mindbop_echo_best");
-  const nextCell = () => {
-    seed.current = (seed.current * 1664525 + 1013904223) >>> 0;
-    return seed.current % 16;
-  };
+
+  const clearTimers = useCallback(() => {
+    timers.current.forEach((timer) => window.clearTimeout(timer));
+    timers.current = [];
+  }, []);
+
   const tone = useCallback(
     (index: number) => {
       if (muted) return;
@@ -240,14 +272,21 @@ function EchoGrid() {
       osc.connect(gain).connect(context.destination);
       osc.start();
       osc.stop(context.currentTime + 0.18);
+      window.setTimeout(() => void context.close(), 220);
     },
     [muted],
   );
+
   const show = useCallback(
     (next: number[]) => {
-      timers.current.forEach(clearTimeout);
+      clearTimers();
       setPhase("show");
       setEntered([]);
+      setActive(null);
+
+      const step = Math.max(330, 520 - Math.max(0, next.length - 4) * 12);
+      const flash = Math.max(190, step * 0.58);
+
       next.forEach((cell, i) => {
         timers.current.push(
           window.setTimeout(
@@ -255,52 +294,81 @@ function EchoGrid() {
               setActive(cell);
               tone(cell);
             },
-            500 + i * 520,
+            420 + i * step,
           ),
         );
         timers.current.push(
-          window.setTimeout(() => setActive(null), 800 + i * 520),
+          window.setTimeout(() => setActive(null), 420 + i * step + flash),
         );
       });
+
       timers.current.push(
-        window.setTimeout(() => setPhase("input"), 500 + next.length * 520),
+        window.setTimeout(
+          () => {
+            setActive(null);
+            setPhase("input");
+          },
+          420 + next.length * step,
+        ),
       );
     },
-    [tone],
+    [clearTimers, tone],
   );
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  useEffect(() => () => clearTimers(), [clearTimers]);
+
   function start() {
+    clearTimers();
     setLevel(1);
     setStrikes(0);
-    const next = [nextCell()];
+    setEntered([]);
+    setActive(null);
+    const next = createEchoSequence(1);
     setSequence(next);
     show(next);
   }
+
   function press(cell: number) {
     if (phase !== "input") return;
+
+    const expected = sequence[entered.length];
     const next = [...entered, cell];
     setActive(cell);
+    timers.current.push(window.setTimeout(() => setActive(null), 150));
     tone(cell);
-    window.setTimeout(() => setActive(null), 150);
-    if (cell !== sequence[next.length - 1]) {
+
+    if (cell !== expected) {
       const failures = strikes + 1;
       setStrikes(failures);
+      setEntered([]);
+
       if (failures >= 3) {
-        saveBest(level);
+        clearTimers();
+        saveBest(Math.max(0, level - 1));
         setPhase("over");
-      } else show(sequence);
+        return;
+      }
+
+      // A failed attempt gets a fresh sequence at the same level. This keeps
+      // every replay unpredictable instead of making the player memorize one
+      // permanent path.
+      const retry = createEchoSequence(level);
+      setSequence(retry);
+      window.setTimeout(() => show(retry), 300);
       return;
     }
+
     setEntered(next);
     if (next.length === sequence.length) {
       const newLevel = level + 1;
       setLevel(newLevel);
       saveBest(newLevel);
-      const expanded = [...sequence, nextCell()];
+      const expanded = createEchoSequence(Math.min(newLevel, TONES.length));
       setSequence(expanded);
       window.setTimeout(() => show(expanded), 650);
     }
   }
+
   return (
     <div className="echo-world">
       <Header title="Echo Grid" score={level} best={best} />
@@ -321,7 +389,15 @@ function EchoGrid() {
             {muted ? <VolumeX /> : <Volume2 />}
           </button>
         </div>
-        <div className="echo-board">
+        <div
+          className="echo-board"
+          style={{
+            width: "min(78vw, 680px)",
+            height: "min(78vw, 680px)",
+            maxWidth: "calc(100vw - 32px)",
+            maxHeight: "calc(100vh - 210px)",
+          }}
+        >
           {TONES.map((color, index) => (
             <button
               key={index}
@@ -353,8 +429,8 @@ function EchoGrid() {
                 : "Trust your memory."}
             </h1>
             <p>
-              Watch the pulse sequence, then repeat it exactly. Each level adds
-              another signal. Three failures end the link.
+              Watch the pulse sequence, then repeat it exactly. Every round is
+              freshly randomized. Three failures end the link.
             </p>
             <button onClick={start}>
               {phase === "over" ? <RotateCcw /> : <Play />}
