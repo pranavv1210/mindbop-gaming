@@ -6,7 +6,7 @@ async function skip(page: Page) {
   if (await button.isVisible()) await button.click();
 }
 
-test("two browsers enter the synchronized Arena movement range", async ({ browser }) => {
+test("two browsers enter the synchronized Arena match", async ({ browser }) => {
   test.setTimeout(70_000);
   const hostContext = await browser.newContext();
   const guestContext = await browser.newContext();
@@ -26,9 +26,12 @@ test("two browsers enter the synchronized Arena movement range", async ({ browse
     await guest.getByRole("button", { name: "I’m ready" }).click();
     await host.getByRole("button", { name: "Start game" }).click();
     for (const page of [host, guest]) {
-      await expect(page.getByLabel("MindBop Arena first-person training map")).toBeVisible();
-      await expect(page.getByText("PLAYERS 2/10")).toBeVisible();
-      await expect(page.getByRole("button", { name: /Click to play/ })).toBeEnabled({ timeout: 20_000 });
+      await expect(page.getByLabel("MindBop Arena first-person combat map")).toBeVisible();
+      await expect(page.getByText(/CAPTURE ZONE/)).toBeVisible();
+      await expect(page.getByText("server authoritative")).toBeVisible();
+      await expect(page.getByRole("button", { name: /Enter the arena/ })).toBeEnabled({ timeout: 20_000 });
+      await expect(page.getByText(/Pulse/)).toBeVisible();
+      await expect(page.getByText(/Striker/)).toBeVisible();
     }
   } finally {
     await Promise.allSettled([host.close(), guest.close()]);
