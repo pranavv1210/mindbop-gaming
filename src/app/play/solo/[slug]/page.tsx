@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { NeonBreach } from "@/games/solo/neon-breach";
+import { NeonBreach } from "@/games/solo/neon-breach-v2";
 import { SoloArcade } from "@/games/solo/solo-arcade";
 
 export default async function SoloPage({
