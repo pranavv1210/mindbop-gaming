@@ -34,7 +34,13 @@ export type ArenaView = {
 };
 
 export type ArenaAction =
-  | { type: "shoot"; weapon: ArenaWeapon; yaw: number; pitch: number }
+  | {
+      type: "shoot";
+      weapon: ArenaWeapon;
+      yaw: number;
+      pitch: number;
+      shotAt: number;
+    }
   | { type: "ability" }
   | { type: "weapon"; weapon: ArenaWeapon }
   | { type: "hero"; hero: ArenaHero };
