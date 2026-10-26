@@ -17,16 +17,25 @@ import { GameCard } from "@/components/game-card";
 import { Feedback } from "@/components/feedback";
 import { GameCover } from "@/components/game-cover";
 import { games } from "@/lib/games";
-const marqueeLines = ["Good friends", "Great games", "Unexpected betrayals", "One more round?", "Zero downloads", "Instant private rooms", "Bragging rights included", "Chaos on every screen"];
+
+const marqueeLines = [
+  "Good friends",
+  "Great games",
+  "Unexpected betrayals",
+  "One more round?",
+  "Zero downloads",
+  "Instant private rooms",
+  "Bragging rights included",
+  "Chaos on every screen",
+];
+
 export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "MindBop",
-    description: "Multiplayer browser games made for groups of friends.",
-    url:
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      "https://mindbop-gaming.onrender.com",
+    description: "A browser-first multiplayer game platform for friends and communities.",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://mindbop-gaming.onrender.com",
     hasPart: games.map((game) => ({
       "@type": "VideoGame",
       name: game.name,
@@ -39,6 +48,7 @@ export default function Home() {
       },
     })),
   };
+
   return (
     <>
       <Header />
@@ -47,19 +57,20 @@ export default function Home() {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
+
         <section id="top" className="hero container">
           <div className="hero-copy">
             <div className="hero-note">
-              <span className="tiny-spark">✦</span> A good time, just a link
-              away
+              <span className="tiny-spark">✦</span>
+              The browser game room for your people
             </div>
             <h1>
-              Play together.
+              Open a room.
               <br />
-              Make chaos.
+              Invite your people.
               <br />
               <span className="chaos-word">
-                Draw something wild.
+                Let the chaos begin.
                 <svg viewBox="0 0 420 20" fill="none" aria-hidden="true">
                   <path
                     d="M4 13C110 2 310 2 414 9M46 18c110-8 245-9 331-4"
@@ -71,39 +82,28 @@ export default function Home() {
               </span>
             </h1>
             <p>
-              Party games, creative challenges, and multiplayer experiences
-              built for you and your friends. Start with MindBop Draw—no
-              download, no account, just one link.
+              MindBop is a browser-first home for multiplayer games, social
+              chaos, solo challenges, and original experiences. Pick a game,
+              create a private room, and send one link to the group.
             </p>
             <div className="hero-actions">
               <Link href="/play" className="button button-primary button-large">
-                Let’s play <ArrowUpRight size={21} />
+                Enter the game room <ArrowUpRight size={21} />
               </Link>
               <a href="#games" className="button button-outline button-large">
-                Explore games <ArrowRight size={18} />
+                Browse games <ArrowRight size={18} />
               </a>
             </div>
             <div className="hero-perks">
-              <span>
-                <Check />
-                No downloads
-              </span>
-              <span>
-                <Check />
-                No sign-ups
-              </span>
-              <span>
-                <Check />
-                Just good company
-              </span>
+              <span><Check /> No downloads</span>
+              <span><Check /> Guest-first play</span>
+              <span><Check /> Private rooms</span>
             </div>
           </div>
-          <div className="hero-shelf" aria-label="MindBop game shelf">
+
+          <div className="hero-shelf" aria-label="MindBop featured games">
             {games.slice(0, 3).map((game, index) => (
-              <article
-                className={`hero-shelf-card shelf-card-${index + 1}`}
-                key={game.id}
-              >
+              <article className={`hero-shelf-card shelf-card-${index + 1}`} key={game.id}>
                 <GameCover src={game.cover} title={game.name} />
                 <div>
                   <strong>{game.name}</strong>
@@ -113,9 +113,10 @@ export default function Home() {
                 </div>
               </article>
             ))}
-            <p>MindBop Draw is live. More beautiful chaos is coming.</p>
+            <p>Eight games in the current catalog. More worlds are being built.</p>
           </div>
         </section>
+
         <div className="marquee" aria-hidden="true">
           <div className="marquee-track">
             {[0, 1].map((copy) => (
@@ -129,25 +130,21 @@ export default function Home() {
             ))}
           </div>
         </div>
+
         <section className="games-section container" id="games">
           <div className="section-heading">
             <div>
-              <span className="section-kicker">
-                <Sparkles size={16} /> Pick your kind of chaos
-              </span>
-              <h2>A few favorites. A lot more waiting.</h2>
+              <span className="section-kicker"><Sparkles size={16} /> The MindBop shelf</span>
+              <h2>Pick the mood. We’ll bring the game.</h2>
             </div>
-            <Link href="/play" className="text-link">
-              Explore more games <ArrowUpRight size={18} />
-            </Link>
+            <Link href="/play" className="text-link">Explore the full library <ArrowUpRight size={18} /></Link>
           </div>
           <p className="section-intro">
-            Start with a featured favorite, or open the full game hub to find the right kind of chaos.
+            Social deduction, creative chaos, solo challenges, racing, comedy,
+            and competitive games—one home, one visual language.
           </p>
           <div className="game-grid catalog-grid">
-            {games.slice(0, 3).map((game) => (
-              <GameCard key={game.id} game={game} />
-            ))}
+            {games.slice(0, 3).map((game) => <GameCard key={game.id} game={game} />)}
           </div>
           <div className="games-explore-more">
             <Link href="/play" className="button button-primary button-large">
@@ -155,199 +152,99 @@ export default function Home() {
             </Link>
           </div>
         </section>
+
         <section className="usp-section container" aria-labelledby="usp-title">
           <div className="usp-statement">
             <span>Why MindBop</span>
-            <h2 id="usp-title">The game night that starts before the group chat gets distracted.</h2>
+            <h2 id="usp-title">Less setup. More moments your group will actually remember.</h2>
           </div>
           <div className="usp-points">
-            <article>
-              <strong>One link</strong>
-              <p>Create a private room and bring everyone in without installs or accounts.</p>
-            </article>
-            <article>
-              <strong>Every screen</strong>
-              <p>Phone, tablet, or laptop—each game is built to stay complete and playable.</p>
-            </article>
-            <article>
-              <strong>Actually social</strong>
-              <p>Quick rules and shared moments keep the people, not setup screens, at the center.</p>
-            </article>
+            <article><strong>One link</strong><p>Create a private room and bring everyone in without installs or complicated accounts.</p></article>
+            <article><strong>Every screen</strong><p>Phone, tablet, or laptop—each experience is designed around the device actually in someone’s hands.</p></article>
+            <article><strong>A growing shelf</strong><p>First-party games and properly licensed creations can live side by side in one consistent platform.</p></article>
           </div>
         </section>
+
         <section className="how-section" id="how-it-works">
           <div className="container">
             <div className="section-heading centered">
-              <span className="section-kicker">
-                Less setting up. More showing off.
-              </span>
-              <h2>From “hey” to “one more round.”</h2>
-              <p>
-                No complicated rules to get started. Just bring your favorite
-                humans.
-              </p>
+              <span className="section-kicker">The shortest route from hello to “one more round.”</span>
+              <h2>Four moves. Then you’re playing.</h2>
+              <p>No launcher, no setup marathon, no hunting for the right server.</p>
             </div>
             <div className="steps">
               {[
-                {
-                  icon: MousePointer2,
-                  title: "Set your name",
-                  text: "Choose your player name and open MindBop Draw from any browser.",
-                },
-                {
-                  icon: PartyPopper,
-                  title: "Make some room",
-                  text: "Create a private room. You’re the host, so set the pace.",
-                },
-                {
-                  icon: Link2,
-                  title: "Send the invite",
-                  text: "Share your room link. Friends hop in from any browser.",
-                },
-                {
-                  icon: Zap,
-                  title: "Play for the win",
-                  text: "Take your turn, read your rival, and run it back when the round ends.",
-                },
+                { icon: MousePointer2, title: "Set your name", text: "Choose a guest name and open the game hub from any modern browser." },
+                { icon: PartyPopper, title: "Choose a game", text: "Pick the kind of chaos your group is in the mood for." },
+                { icon: Link2, title: "Make a room", text: "Create a private room and share the code or invite link." },
+                { icon: Zap, title: "Play it out", text: "Compete, cooperate, accuse, draw, race, laugh, and run it back." },
               ].map((step, i) => (
                 <article className="step" key={step.title}>
-                  <div className={`step-icon step-${i}`}>
-                    <step.icon size={27} />
-                    <span>{i + 1}</span>
-                  </div>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
+                  <div className={`step-icon step-${i}`}><step.icon size={27} /><span>{i + 1}</span></div>
+                  <h3>{step.title}</h3><p>{step.text}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
+
         <section className="social-section container" id="about">
           <div className="social-visual" aria-hidden="true">
             <div className="social-orbit" />
-            <div className="social-center">
-              <span>
-                your kind
-                <br />
-                of people.
-              </span>
-              <Sparkles />
-            </div>
-            <div className="social-avatar social-a">
-              <Avatar index={0} />
-            </div>
-            <div className="social-avatar social-b">
-              <Avatar index={1} />
-            </div>
-            <div className="social-avatar social-c">
-              <Avatar index={3} />
-            </div>
-            <div className="social-avatar social-d">
-              <Avatar index={2} />
-            </div>
+            <div className="social-center"><span>your kind<br />of people.</span><Sparkles /></div>
+            <div className="social-avatar social-a"><Avatar index={0} /></div>
+            <div className="social-avatar social-b"><Avatar index={1} /></div>
+            <div className="social-avatar social-c"><Avatar index={3} /></div>
+            <div className="social-avatar social-d"><Avatar index={2} /></div>
             <span className="social-chat chat-a">one more round?</span>
             <span className="social-chat chat-b">you’re going down 😏</span>
           </div>
           <div className="social-copy">
-            <span className="section-kicker">
-              <Globe2 size={17} /> Different places. Same good time.
-            </span>
-            <h2>
-              A little closer.
-              <br />A lot more to play.
-            </h2>
-            <p>
-              For the group chat that never makes plans. The team that needs a
-              break. The family with a very competitive aunt.
-            </p>
-            <p>
-              Across the table or across time zones, there’s always room for
-              your people.
-            </p>
-            <div className="audience-tags">
-              <span>Friends</span>
-              <span>Teammates</span>
-              <span>Family</span>
-              <span>Your internet crew</span>
-            </div>
-            <Link href="/play" className="text-link">
-              Bring everyone together <ArrowUpRight size={18} />
-            </Link>
+            <span className="section-kicker"><Globe2 size={17} /> Different places. Same good time.</span>
+            <h2>A little closer. A lot more to play.</h2>
+            <p>For the group chat that never makes plans. The team that needs a break. The family with a very competitive aunt.</p>
+            <p>Across the table or across time zones, there’s always room for your people.</p>
+            <div className="audience-tags"><span>Friends</span><span>Teammates</span><span>Family</span><span>Your internet crew</span></div>
+            <Link href="/play" className="text-link">Bring everyone together <ArrowUpRight size={18} /></Link>
           </div>
         </section>
+
         <section className="creator-section container" id="developers">
           <div className="creator-copy">
-            <span className="section-kicker">
-              <Globe2 size={17} /> A bigger shelf needs more makers
-            </span>
+            <span className="section-kicker"><Globe2 size={17} /> A bigger shelf needs more makers</span>
             <h2>Built a multiplayer web game?</h2>
-            <p>
-              MindBop can publish first-party games and properly licensed games
-              from independent developers. Every submission needs clear
-              ownership, browser-ready code, and permission to distribute it.
-            </p>
-            <Link href="/developers" className="button button-dark">
-              Read the developer guide <ArrowUpRight size={18} />
-            </Link>
+            <p>MindBop can publish first-party games and properly licensed games from independent developers. Every submission needs clear ownership, browser-ready code, and permission to distribute it.</p>
+            <Link href="/developers" className="button button-dark">Read the developer guide <ArrowUpRight size={18} /></Link>
           </div>
-          <div
-            className="creator-checklist"
-            aria-label="Game submission checklist"
-          >
+          <div className="creator-checklist" aria-label="Game submission checklist">
             <strong>What we can review</strong>
-            <span>
-              <Check size={17} /> HTML5/WebGL games you own
-            </span>
-            <span>
-              <Check size={17} /> Open-source games with compatible licenses
-            </span>
-            <span>
-              <Check size={17} /> Embeds approved by the publisher
-            </span>
-            <small>
-              We do not copy, rehost, or frame a game without the creator’s
-              written permission.
-            </small>
+            <span><Check size={17} /> HTML5/WebGL games you own</span>
+            <span><Check size={17} /> Open-source games with compatible licenses</span>
+            <span><Check size={17} /> Embeds approved by the publisher</span>
+            <small>We do not copy, rehost, or frame a game without the creator’s written permission.</small>
           </div>
         </section>
+
         <Feedback />
+
         <section className="final-cta container">
-          <span className="cta-spark" aria-hidden="true">
-            ✳
-          </span>
-          <div>
-            <h2>
-              Your next “one more round”
-              <br />
-              starts right here.
-            </h2>
-            <p>No plans needed. Just a few good friends.</p>
-          </div>
-          <Link className="button button-light button-large" href="/play">
-            Enter MindBop <ArrowUpRight size={20} />
-          </Link>
+          <span className="cta-spark" aria-hidden="true">✳</span>
+          <div><h2>Your next “one more round”<br />starts right here.</h2><p>No plans needed. Just a few good friends.</p></div>
+          <Link className="button button-light button-large" href="/play">Enter MindBop <ArrowUpRight size={20} /></Link>
         </section>
       </main>
+
       <footer className="footer container">
         <div className="footer-top">
-          <div>
-            <Brand />
-            <p>Games made for the group chat.</p>
-          </div>
+          <div><Brand /><p>Games made for the group chat.</p></div>
           <nav aria-label="Footer navigation">
-            <a href="#games">Games</a>
-            <a href="#how-it-works">How it works</a>
-            <a href="#feedback">Feedback</a>
-            <Link href="/developers">For developers</Link>
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
+            <a href="#games">Games</a><a href="#how-it-works">How it works</a><a href="#feedback">Feedback</a>
+            <Link href="/developers">For developers</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link>
           </nav>
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} MindBop</span>
-          <span>
-            Think fast. Play wild. <span className="footer-spark">✦</span>
-          </span>
+          <span>Think fast. Play wild. <span className="footer-spark">✦</span></span>
         </div>
       </footer>
     </>
