@@ -2,15 +2,10 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { GameModule } from "../module";
 import type { ArenaAction, ArenaHero, ArenaPlayer, ArenaTeam, ArenaView, ArenaWeapon } from "../../../src/games/arena/types";
+import { ARENA_HEROES, ARENA_LIMITS, ARENA_MAPS, ARENA_WEAPONS } from "../../../src/games/arena/config";
 
 export const arenaActionSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("shoot"),
-    weapon: z.enum(["pulse", "scatter", "rail"]),
-    yaw: z.number().finite(),
-    pitch: z.number().finite(),
-    shotAt: z.number().finite(),
-  }),
+  z.object({ type: z.literal("shoot"), weapon: z.enum(["pulse", "scatter", "rail"]), yaw: z.number().finite(), pitch: z.number().finite(), shotAt: z.number().finite() }),
   z.object({ type: z.literal("ability") }),
   z.object({ type: z.literal("weapon"), weapon: z.enum(["pulse", "scatter", "rail"]) }),
   z.object({ type: z.literal("hero"), hero: z.enum(["striker", "warden", "ghost", "medic"]) }),
@@ -24,45 +19,24 @@ type Body = ArenaPlayer & {
 };
 type State = ArenaView & { players: Record<string, Body>; lastTick: number; zoneCycleAt: number };
 
-const weapons: Record<ArenaWeapon, { damage: number; cooldown: number; range: number; spread: number }> = {
-  pulse: { damage: 20, cooldown: 140, range: 55, spread: 0.035 },
-  scatter: { damage: 12, cooldown: 520, range: 24, spread: 0.22 },
-  rail: { damage: 65, cooldown: 900, range: 90, spread: 0.008 },
-};
-const heroStats: Record<ArenaHero, { maxHp: number; speed: number; abilityCooldown: number }> = {
-  striker: { maxHp: 100, speed: 9.5, abilityCooldown: 7000 },
-  warden: { maxHp: 135, speed: 7.5, abilityCooldown: 9000 },
-  ghost: { maxHp: 85, speed: 10.5, abilityCooldown: 8500 },
-  medic: { maxHp: 105, speed: 8.8, abilityCooldown: 7500 },
-};
-
 const spawn = (id: string, index: number): Body => {
   const team: ArenaTeam = index % 2 ? "azure" : "ember";
-  const hero: ArenaHero = index % 4 === 1 ? "warden" : index % 4 === 2 ? "ghost" : index % 4 === 3 ? "medic" : "striker";
-  const stats = heroStats[hero];
+  const hero: ArenaHero = ["striker", "warden", "ghost", "medic"][index % 4] as ArenaHero;
+  const stats = ARENA_HEROES[hero];
   return {
-    id, x: team === "ember" ? -8 : 8, y: 1, z: (index % 4) * 3 - 4,
-    rotation: team === "ember" ? Math.PI / 2 : -Math.PI / 2, pitch: 0, team, hero, weapon: "pulse",
-    hp: stats.maxHp, maxHp: stats.maxHp, kills: 0, deaths: 0, score: 0, abilityReadyAt: 0,
-    vx: 0, vz: 0, vy: 0, inputX: 0, inputZ: 0, jump: false, sprint: false, nextShotAt: 0, respawnAt: 0,
-    history: [],
+    id, x: team === "ember" ? -12 : 12, y: 1, z: (index % 5) * 3 - 6,
+    rotation: team === "ember" ? Math.PI / 2 : -Math.PI / 2, pitch: 0,
+    team, hero, weapon: "pulse", hp: stats.maxHp, maxHp: stats.maxHp,
+    kills: 0, deaths: 0, score: 0, abilityReadyAt: 0, stamina: 100,
+    shieldUntil: 0, cloakedUntil: 0, spawnProtectedUntil: 0,
+    vx: 0, vz: 0, vy: 0, inputX: 0, inputZ: 0, jump: false, sprint: false,
+    nextShotAt: 0, respawnAt: 0, history: [],
   };
 };
 
 function forward(yaw: number, pitch: number) {
   const cp = Math.cos(pitch);
   return { x: Math.sin(yaw) * cp, y: -Math.sin(pitch), z: Math.cos(yaw) * cp };
-}
-function distance(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) {
-  return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
-}
-function respawnPlayer(p: Body, now: number) {
-  p.x = p.team === "ember" ? -8 : 8; p.y = 1; p.z = 0; p.hp = p.maxHp; p.respawnAt = now + 1400; p.vx = 0; p.vz = 0;
-}
-function remember(p: Body, now: number) {
-  p.history.push({ t: now, x: p.x, y: p.y, z: p.z, rotation: p.rotation });
-  const cutoff = now - 1200;
-  while (p.history.length && p.history[0].t < cutoff) p.history.shift();
 }
 function historical(p: Body, at: number) {
   if (!p.history.length) return { x: p.x, y: p.y, z: p.z };
@@ -75,23 +49,59 @@ function historical(p: Body, at: number) {
   const a = Math.max(0, Math.min(1, (at - before.t) / (after.t - before.t)));
   return { x: before.x + (after.x - before.x) * a, y: before.y + (after.y - before.y) * a, z: before.z + (after.z - before.z) * a };
 }
+function remember(p: Body, now: number) {
+  p.history.push({ t: now, x: p.x, y: p.y, z: p.z, rotation: p.rotation });
+  const cutoff = now - ARENA_LIMITS.historyMs;
+  while (p.history.length && p.history[0].t < cutoff) p.history.shift();
+}
+function respawn(p: Body, now: number) {
+  p.x = p.team === "ember" ? -12 : 12;
+  p.y = 1; p.z = 0; p.hp = p.maxHp; p.respawnAt = 0;
+  p.spawnProtectedUntil = now + ARENA_LIMITS.spawnProtectionMs;
+  p.stamina = 100; p.vx = 0; p.vz = 0; p.vy = 0;
+  p.shieldUntil = 0; p.cloakedUntil = 0;
+}
+
+function damageTarget(shooter: Body, target: Body, amount: number, now: number, headshot = false) {
+  if (target.respawnAt > now || target.hp <= 0 || target.spawnProtectedUntil > now) return false;
+  const multiplier = headshot ? 1.2 : 1;
+  const shielded = target.shieldUntil > now;
+  target.hp -= amount * multiplier * (shielded ? 0.45 : 1);
+  shooter.score += Math.round(amount * multiplier * (shielded ? 0.45 : 1));
+  if (target.hp <= 0) {
+    target.hp = 0;
+    target.deaths += 1;
+    shooter.kills += 1;
+    shooter.score += headshot ? 150 : 100;
+    target.respawnAt = now + 1800;
+  }
+  return true;
+}
 
 export const mindbopArena: GameModule<State, ArenaView> = {
   id: "mindbop-arena",
   create(ids, now) {
-    if (ids.length < 2 || ids.length > 10) throw new Error("MindBop Arena needs 2–10 players.");
+    if (ids.length < ARENA_LIMITS.minPlayers || ids.length > ARENA_LIMITS.maxPlayers) throw new Error("MindBop Arena supports 2–10 players.");
     const players = Object.fromEntries(ids.map((id, index) => [id, spawn(id, index)]));
     for (const player of Object.values(players)) remember(player, now);
+    const mapIndex = Math.abs([...randomUUID()].reduce((sum, char) => sum + char.charCodeAt(0), 0)) % ARENA_MAPS.length;
+    const map = ARENA_MAPS[mapIndex];
+    const [x, z] = map.zoneSpots[0];
     return {
-      kind: "mindbop-arena", runId: randomUUID(), phase: "live", playerIds: ids, players,
-      zone: { x: 0, z: 0, radius: 5.5, progress: 0, owner: null }, scores: { ember: 0, azure: 0 },
-      timeLeft: 480, winner: null, finished: false, lastTick: now, zoneCycleAt: now + 60000,
+      kind: "mindbop-arena", runId: randomUUID(), phase: "live", mapId: map.id,
+      playerIds: ids, players, zone: { x, z, radius: 5.5, progress: 0, owner: null },
+      scores: { ember: 0, azure: 0 }, timeLeft: ARENA_LIMITS.matchSeconds,
+      winner: null, finished: false, lastTick: now, zoneCycleAt: now + ARENA_LIMITS.zoneCycleMs,
     };
   },
   input(state, id, x, z, now, jump, sprint) {
     const p = state.players[id];
     if (!p || p.respawnAt > now) return;
-    p.inputX = x; p.inputZ = z; p.jump ||= Boolean(jump); p.sprint = Boolean(sprint);
+    const length = Math.hypot(x, z) || 1;
+    p.inputX = Math.max(-1, Math.min(1, x / length));
+    p.inputZ = Math.max(-1, Math.min(1, z / length));
+    p.jump ||= Boolean(jump);
+    p.sprint = Boolean(sprint) && p.stamina > 0;
   },
   act(state, id, raw, now) {
     const p = state.players[id];
@@ -99,63 +109,83 @@ export const mindbopArena: GameModule<State, ArenaView> = {
     const action = raw as ArenaAction;
     if (action.type === "weapon") { p.weapon = action.weapon; return; }
     if (action.type === "hero") {
-      const stats = heroStats[action.hero];
-      p.hero = action.hero; p.maxHp = stats.maxHp; p.hp = Math.min(p.hp, stats.maxHp); return;
+      const stats = ARENA_HEROES[action.hero];
+      p.hero = action.hero; p.maxHp = stats.maxHp; p.hp = stats.maxHp;
+      return;
     }
     if (action.type === "ability") {
       if (now < p.abilityReadyAt) return;
-      p.abilityReadyAt = now + heroStats[p.hero].abilityCooldown;
-      if (p.hero === "striker") { const d = forward(p.rotation, 0); p.x = Math.max(-18, Math.min(18, p.x + d.x * 4)); p.z = Math.max(-18, Math.min(18, p.z + d.z * 4)); }
-      if (p.hero === "medic") p.hp = Math.min(p.maxHp, p.hp + 30);
-      if (p.hero === "warden") p.hp = Math.min(p.maxHp, p.hp + 20);
+      p.abilityReadyAt = now + ARENA_HEROES[p.hero].abilityCooldown;
+      if (p.hero === "striker") {
+        const d = forward(p.rotation, 0); p.x = Math.max(-18, Math.min(18, p.x + d.x * 4.5)); p.z = Math.max(-18, Math.min(18, p.z + d.z * 4.5));
+      } else if (p.hero === "medic") {
+        p.hp = Math.min(p.maxHp, p.hp + 38);
+      } else if (p.hero === "warden") {
+        p.shieldUntil = now + 4200;
+      } else if (p.hero === "ghost") {
+        p.cloakedUntil = now + 3500;
+      }
       return;
     }
-    if (action.type === "shoot") {
-      const weapon = weapons[action.weapon];
-      if (p.weapon !== action.weapon || now < p.nextShotAt) return;
-      p.nextShotAt = now + weapon.cooldown;
-      p.rotation = action.yaw;
-      p.pitch = Math.max(-1.3, Math.min(1.3, action.pitch));
-      const shotAt = Math.max(now - 1000, Math.min(now, action.shotAt));
-      const shooter = historical(p, shotAt);
-      const dir = forward(p.rotation, p.pitch);
+    if (action.type !== "shoot") return;
+    const weapon = ARENA_WEAPONS[action.weapon];
+    if (p.weapon !== action.weapon || now < p.nextShotAt || p.spawnProtectedUntil > now) return;
+    p.nextShotAt = now + weapon.cooldown;
+    p.rotation = action.yaw;
+    p.pitch = Math.max(-1.3, Math.min(1.3, action.pitch));
+    const shotAt = Math.max(now - ARENA_LIMITS.maxRewindMs, Math.min(now, action.shotAt));
+    const origin = historical(p, shotAt);
+    const direction = forward(p.rotation, p.pitch);
+    const seed = Math.floor(shotAt * 0.1) ^ p.id.length;
+    for (let pellet = 0; pellet < weapon.pellets; pellet += 1) {
       let best: Body | null = null;
       let bestDistance = weapon.range;
+      const spreadScale = weapon.pellets === 1 ? 1 : 1 + (((seed + pellet * 17) % 100) / 100 - 0.5) * 1.6;
+      const dxAim = direction.x + Math.sin(seed + pellet) * weapon.spread * spreadScale;
+      const dyAim = direction.y + Math.cos(seed * 0.7 + pellet) * weapon.spread * spreadScale;
+      const dzAim = direction.z + Math.sin(seed * 0.37 + pellet * 2) * weapon.spread * spreadScale;
+      const lenAim = Math.hypot(dxAim, dyAim, dzAim) || 1;
+      const dir = { x: dxAim / lenAim, y: dyAim / lenAim, z: dzAim / lenAim };
       for (const target of Object.values(state.players)) {
-        if (target.id === id || target.team === p.team || target.respawnAt > now || target.hp <= 0) continue;
-        const targetPos = historical(target, shotAt);
-        const dx = targetPos.x - shooter.x;
-        const dy = targetPos.y + 0.9 - (shooter.y + 1.2);
-        const dz = targetPos.z - shooter.z;
-        const len = Math.hypot(dx, dy, dz) || 1;
-        const dot = (dx / len) * dir.x + (dy / len) * dir.y + (dz / len) * dir.z;
-        const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+        if (target.id === id || target.team === p.team || target.respawnAt > now || target.hp <= 0 || target.cloakedUntil > now) continue;
+        const pos = historical(target, shotAt);
+        const dx = pos.x - origin.x;
+        const dy = pos.y + 1.0 - (origin.y + 1.25);
+        const dz = pos.z - origin.z;
         const d = Math.hypot(dx, dy, dz);
-        if (d <= weapon.range && angle < weapon.spread + 0.045 && d < bestDistance) { best = target; bestDistance = d; }
+        if (d > bestDistance || d < 0.05) continue;
+        const dot = (dx / d) * dir.x + (dy / d) * dir.y + (dz / d) * dir.z;
+        if (dot < 0.995 - weapon.spread * 1.8) continue;
+        best = target; bestDistance = d;
       }
       if (best) {
-        best.hp -= weapon.damage; p.score += weapon.damage;
-        if (best.hp <= 0) { p.kills += 1; p.score += 100; best.deaths += 1; best.respawnAt = now + 1800; best.hp = 0; }
+        const pos = historical(best, shotAt);
+        const headDistance = Math.abs((origin.y + 1.25 + direction.y * bestDistance) - (pos.y + 1.65));
+        damageTarget(p, best, weapon.damage, now, headDistance < 0.22 && weapon.pellets === 1);
       }
     }
   },
   tick(state, connected, now) {
-    const dt = Math.min(0.08, Math.max(0.01, (now - state.lastTick) / 1000));
-    state.lastTick = now; state.timeLeft = Math.max(0, state.timeLeft - dt);
+    const dt = Math.min(ARENA_LIMITS.tickClampSeconds, Math.max(0.01, (now - state.lastTick) / 1000));
+    state.lastTick = now;
+    state.timeLeft = Math.max(0, state.timeLeft - dt);
+    const map = ARENA_MAPS.find((candidate) => candidate.id === state.mapId) ?? ARENA_MAPS[0];
     if (now >= state.zoneCycleAt) {
-      state.zoneCycleAt = now + 60000;
-      const cycle = Math.floor(now / 60000) % 4;
-      const spots = [[0, 0], [8, 7], [-7, 6], [5, -8]] as const;
-      const [x, z] = spots[cycle]; state.zone.x = x; state.zone.z = z; state.zone.progress = 0; state.zone.owner = null;
+      state.zoneCycleAt = now + ARENA_LIMITS.zoneCycleMs;
+      const cycle = Math.floor((state.zoneCycleAt - ARENA_LIMITS.zoneCycleMs) / ARENA_LIMITS.zoneCycleMs) % map.zoneSpots.length;
+      const [x, z] = map.zoneSpots[(cycle + 1) % map.zoneSpots.length];
+      state.zone.x = x; state.zone.z = z; state.zone.progress = 0; state.zone.owner = null;
     }
     for (const id of state.playerIds) {
       const p = state.players[id];
       if (!connected.includes(id)) continue;
-      if (p.respawnAt && now >= p.respawnAt && p.hp <= 0) respawnPlayer(p, now);
+      if (p.respawnAt && now >= p.respawnAt && p.hp <= 0) respawn(p, now);
       if (p.respawnAt > now) continue;
+      const sprinting = p.sprint && p.stamina > 0;
+      p.stamina = Math.max(0, Math.min(100, p.stamina + (sprinting ? -30 : 22) * dt));
       if (p.y <= 1.01) { p.y = 1; p.vy = Math.max(0, p.vy); if (p.jump) p.vy = 8.5; }
       p.jump = false;
-      const speed = p.sprint ? heroStats[p.hero].speed * 1.22 : heroStats[p.hero].speed;
+      const speed = p.sprint && p.stamina > 0 ? ARENA_HEROES[p.hero].speed * 1.22 : ARENA_HEROES[p.hero].speed;
       p.vx += (p.inputX * speed - p.vx) * Math.min(1, dt * 12);
       p.vz += (p.inputZ * speed - p.vz) * Math.min(1, dt * 12);
       p.vy -= 20 * dt; p.x += p.vx * dt; p.z += p.vz * dt; p.y += p.vy * dt;
@@ -166,20 +196,25 @@ export const mindbopArena: GameModule<State, ArenaView> = {
     const inZone = Object.values(state.players).filter(p => connected.includes(p.id) && p.respawnAt <= now && Math.hypot(p.x - state.zone.x, p.z - state.zone.z) <= state.zone.radius);
     const ember = inZone.filter(p => p.team === "ember").length;
     const azure = inZone.filter(p => p.team === "azure").length;
-    if (ember > azure) { state.zone.owner = "ember"; state.zone.progress = Math.min(100, state.zone.progress + dt * 12); }
-    else if (azure > ember) { state.zone.owner = "azure"; state.zone.progress = Math.min(100, state.zone.progress + dt * 12); }
+    if (ember > azure) { state.zone.owner = "ember"; state.zone.progress = Math.min(100, state.zone.progress + dt * ARENA_LIMITS.capturePerSecond); }
+    else if (azure > ember) { state.zone.owner = "azure"; state.zone.progress = Math.min(100, state.zone.progress + dt * ARENA_LIMITS.capturePerSecond); }
+    else if (ember === 0 && azure === 0) state.zone.owner = null;
     if (state.zone.progress >= 100 && state.zone.owner) { state.scores[state.zone.owner] += 10; state.zone.progress = 0; }
-    if (state.scores.ember >= 100 || state.scores.azure >= 100 || state.timeLeft <= 0) { state.finished = true; state.winner = state.scores.ember >= state.scores.azure ? "ember" : "azure"; }
+    if (state.scores.ember >= ARENA_LIMITS.scoreToWin || state.scores.azure >= ARENA_LIMITS.scoreToWin || state.timeLeft <= 0) {
+      state.finished = true; state.winner = state.scores.ember >= state.scores.azure ? "ember" : "azure";
+    }
     return null;
   },
   finished: state => state.finished,
   project(state) {
     return {
-      kind: state.kind, runId: state.runId, phase: state.phase, playerIds: state.playerIds,
+      kind: state.kind, runId: state.runId, phase: state.phase, mapId: state.mapId, playerIds: state.playerIds,
       players: Object.fromEntries(Object.entries(state.players).map(([id, p]) => [id, {
-        id, x: p.x, y: p.y, z: p.z, rotation: p.rotation, pitch: p.pitch, team: p.team, hero: p.hero,
-        weapon: p.weapon, hp: p.hp, maxHp: p.maxHp, kills: p.kills, deaths: p.deaths, score: p.score, abilityReadyAt: p.abilityReadyAt,
-      }])), zone: state.zone, scores: state.scores, timeLeft: state.timeLeft, winner: state.winner, finished: state.finished,
+        id, x: p.x, y: p.y, z: p.z, rotation: p.rotation, pitch: p.pitch, team: p.team, hero: p.hero, weapon: p.weapon,
+        hp: p.hp, maxHp: p.maxHp, kills: p.kills, deaths: p.deaths, score: p.score, abilityReadyAt: p.abilityReadyAt,
+        stamina: p.stamina, shieldUntil: p.shieldUntil, cloakedUntil: p.cloakedUntil, spawnProtectedUntil: p.spawnProtectedUntil,
+      }])),
+      zone: state.zone, scores: state.scores, timeLeft: state.timeLeft, winner: state.winner, finished: state.finished,
     };
   },
 };
