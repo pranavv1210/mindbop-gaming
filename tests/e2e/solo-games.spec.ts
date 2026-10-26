@@ -11,19 +11,19 @@ test("Neon Breach is playable, paced, and responsive", async ({ page }) => {
   await expect(target).toBeVisible();
   await expect(page.getByText("EASY", { exact: true })).toBeVisible();
 
-  // A target must remain available until the player hits it; it should not
-  // disappear immediately after spawning. Clicking it repeatedly should move
-  // the player through the deterministic difficulty thresholds.
+  // The target must remain available until the player hits it.
   await target.dispatchEvent("pointerdown");
   await expect(page.locator(".nb-stat").getByText(/\d+/).first()).not.toHaveText("0");
 
   for (let hit = 1; hit < 10; hit += 1) {
     await page.getByRole("button", { name: "Hit signal" }).dispatchEvent("pointerdown");
+    await page.waitForTimeout(30);
   }
   await expect(page.getByText("MEDIUM", { exact: true })).toBeVisible();
 
   for (let hit = 10; hit < 25; hit += 1) {
     await page.getByRole("button", { name: "Hit signal" }).dispatchEvent("pointerdown");
+    await page.waitForTimeout(30);
   }
   await expect(page.getByText("HARD", { exact: true })).toBeVisible();
 
