@@ -1,676 +1,572 @@
-# 🎮 MindBop Gaming
+<div align="center">
+
+# 🧠🎮 MINDBOP GAMING
 
 ### **Play together. Build together. Ship games together.**
 
-> **MindBop** is an open, social browser-gaming platform built for the games people actually want to play with their friends — instantly, in a browser, with no downloads and no complicated setup.
->
-> We build multiplayer experiences, publish our own games, and open the platform to developers who want to create and share original games with players around the world.
+**An open, browser-first multiplayer gaming platform for friends, communities, and game developers.**
 
-[![Live Platform](https://img.shields.io/badge/Play-MindBop-7c3aed?style=for-the-badge&logo=googlechrome&logoColor=white)](https://mindbop-gaming.onrender.com/)
-[![Open Source](https://img.shields.io/badge/Open%20Source-Welcome-16a34a?style=for-the-badge&logo=github&logoColor=white)](https://github.com/pranavv1210/mindbop-gaming)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-Platform-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![Babylon.js](https://img.shields.io/badge/Babylon.js-3D-EF2D5E?style=for-the-badge)](https://www.babylonjs.com/)
-[![Socket.IO](https://img.shields.io/badge/Socket.IO-Multiplayer-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
+[![Play MindBop](https://img.shields.io/badge/PLAY-MINDBOP-7C3AED?style=for-the-badge&logo=googlechrome&logoColor=white)](https://mindbop-gaming.onrender.com/)
+[![Open Source](https://img.shields.io/badge/OPEN%20SOURCE-WELCOME-16A34A?style=for-the-badge&logo=github&logoColor=white)](https://github.com/pranavv1210/mindbop-gaming)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Babylon.js](https://img.shields.io/badge/Babylon.js-EF2D5E?style=for-the-badge)](https://www.babylonjs.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](LICENSE)
 
-**Live:** https://mindbop-gaming.onrender.com/
+**Live Platform** · [mindbop-gaming.onrender.com](https://mindbop-gaming.onrender.com/) · **Source** · [GitHub](https://github.com/pranavv1210/mindbop-gaming)
+
+</div>
 
 ---
 
-## 🧠 What is MindBop?
+## 🌐 The MindBop Mission
 
-MindBop is more than a collection of games.
-
-It is a **browser-first gaming platform and open game ecosystem** designed around one simple idea:
+MindBop is being built around a simple idea:
 
 > **If your friends can open a link, they should be able to play together.**
 
-No giant launcher.
-No mandatory download.
-No complicated installation.
-No requirement for everyone to be on the same device.
+No giant launcher. No mandatory download. No complicated setup.
 
-Create a room, share a code or link, invite your friends, choose a game, and play.
+Create a room. Share a code or link. Pick a game. Play.
 
-MindBop is being built for:
+MindBop is designed for:
 
 - 🏠 Friends playing from home
 - 🏢 Office groups looking for a quick multiplayer break
 - 🎓 College communities and student groups
 - 🎉 Parties and social gatherings
-- 🌎 Online communities spread across different cities or countries
-- 🎮 Developers who want somewhere to publish browser games
+- 🌎 Communities spread across cities and countries
+- 🎮 Developers who want to build browser games
 - 🧪 Indie creators experimenting with new multiplayer ideas
 
-The long-term goal is simple:
-
-**Make multiplayer games feel as easy to start as sending a message.**
+The bigger ambition is to build a **living game ecosystem** where players discover games and developers have a place to build, test, publish, and improve them.
 
 ---
 
-# 🚀 The MindBop Vision
+## 🧭 What MindBop Is Becoming
 
-The web has millions of games.
+MindBop is not intended to be a single game.
 
-But there is still room for a platform that puts **instant social play** at the center of everything.
+It is a platform with a growing catalog of experiences:
 
-MindBop is being built around four principles:
+| 🎮 Category | Examples | Experience |
+|---|---|---|
+| 🕵️ Mystery | Murder investigations, cold cases | Co-op, story-driven |
+| 🎭 Social Deduction | Mafia, hidden roles | Bluffing, discussion, betrayal |
+| 🎉 Party | Comedy, voting, social games | Fast, chaotic, replayable |
+| 🎨 Creative | Drawing, captions, collaborative games | Player-generated fun |
+| 🏃 Arcade | Mini-games, obstacles, races | Fast competitive sessions |
+| 🌌 Experimental | Strange multiplayer ideas | Anything goes |
+| 🌍 3D Worlds | Adventures, arenas, interactive spaces | Immersive browser play |
 
-### 01 — Instant
+We want games that make people say:
 
-Open a browser. Create a room. Share the link. Play.
-
-### 02 — Social
-
-The people sitting on the other side of the screen are the game.
-
-### 03 — Creative
-
-We want weird ideas, hilarious mechanics, competitive experiences, mysteries, party games, 3D worlds, experiments and games nobody has seen before.
-
-### 04 — Open
-
-MindBop should not be a closed box. Developers should be able to understand the platform, build games for it, contribute improvements, and eventually publish their own experiences.
+> **"Wait… we have to play that again."**
 
 ---
 
-# 🎮 What We Build
+# ✨ Why MindBop?
 
-MindBop can host many different kinds of games.
+### ⚡ Instant
 
-## 🕵️ Mystery & Investigation
+Open the website and start playing. The browser is the launcher.
 
-Games where communication, exploration and teamwork matter.
+### 👥 Social
 
-Examples:
+The people in the room are part of the experience — not an afterthought.
 
-- **The Last Guest** — investigate a murder together.
-- **Signal Lost** — coordinate when players don't have the same information.
-- **Cold Case-style investigations** — evidence, suspects, timelines and deductions.
+### 🎨 Creative
 
-## 🎉 Social & Party Games
+Mysteries, party games, drawing games, competitive games, 3D experiments and ideas that don't fit neatly into a genre.
 
-Fast games designed for groups of friends.
+### 🌍 Open
 
-Examples:
+The platform is being developed with an open-source mindset. Developers can inspect the code, contribute improvements, propose games, and help shape the ecosystem.
 
-- Mafia
-- Two Truths and a Lie
-- Comedy / voting games
-- Bluffing games
-- Hidden-role games
-- Trivia and reaction games
+### 📱 Device-friendly
 
-## 🎨 Creative Games
-
-Games where players make something rather than simply control a character.
-
-Examples:
-
-- Scribble-style drawing games
-- Collaborative creation
-- Caption battles
-- Improvisation games
-- Creative challenges
-
-## 🏃 Arcade & Competitive Games
-
-Short, replayable games that are easy to understand and difficult to master.
-
-Examples:
-
-- Arena games
-- Obstacle courses
-- Mini-games
-- Racing
-- Team challenges
-- Physics-based chaos
-
-## 🌌 Experimental Games
-
-This is where things get interesting.
-
-If someone has a strange multiplayer game idea that sounds impossible, **we want to hear it.**
+Games are designed for the realities of the web: desktops, laptops, tablets and phones where the game supports them.
 
 ---
 
-# 🕹️ Current Platform
+# 🎮 The Game Philosophy
 
-The current repository already contains the foundation for a real multiplayer game platform.
+We care about **playability before complexity**.
 
-### Current capabilities
+A game does not need 400 mechanics to be great.
 
-- Private multiplayer rooms
-- Invite codes and room links
-- Guest-first identity
-- Host management and transfer
-- Reconnect handling
-- Server-authoritative game state
-- Real-time Socket.IO communication
-- Browser-based 3D rendering with Babylon.js
-- Responsive game interfaces
-- Touch-oriented controls
-- Game catalog and categories
-- Searchable game metadata
-- Solo-game routes
-- Multiplayer-game routes
-- Feedback collection
-- Supabase integration for optional persistence
-- Automated tests
-- Browser end-to-end testing
-- Multiplayer load testing
-
-The platform is intentionally being built so that **games can be added independently instead of turning the entire application into one enormous game.**
-
----
-
-# 🌐 How MindBop Works
-
-At a high level:
+A MindBop game should aim for:
 
 ```text
-                         ┌─────────────────────┐
-                         │      MINDBOP        │
-                         │   Gaming Platform   │
-                         └──────────┬──────────┘
-                                    │
-                    ┌───────────────┼────────────────┐
-                    │               │                │
-                Landing          Game Hub         Feedback
-                    │               │
-                    │       ┌───────┼────────┐
-                    │       │       │        │
-                    │    Social   Mystery   Arcade
-                    │       │       │        │
-                    └───────┴───────┴────────┘
-                                    │
-                              Create / Join
-                                    │
-                                  Room
-                                    │
-                         ┌──────────┴──────────┐
-                         │                     │
-                      Players              Game State
-                         │                     │
-                         └──────────┬──────────┘
-                                    │
-                              Game Engine
-                                    │
-                         ┌──────────┴──────────┐
-                         │                     │
-                    Browser Client        Game Server
-                         │                     │
-                    Rendering/UI        Authoritative State
+OPEN
+  ↓
+JOIN
+  ↓
+UNDERSTAND
+  ↓
+PLAY
+  ↓
+LAUGH / COMPETE / INVESTIGATE
+  ↓
+REPLAY
 ```
 
-The browser is responsible for presentation and input.
+Every multiplayer game should think about the things real players actually do:
 
-The server is responsible for the rules that matter.
+- Someone joins late.
+- Someone disconnects.
+- Someone refreshes the page.
+- Someone is on a phone.
+- Someone has terrible Wi-Fi.
+- Someone doesn't understand the rules.
+- Someone wants to play another round immediately.
 
-That distinction is critical for multiplayer games: **players should never be trusted to tell the server that they won, scored, moved somewhere impossible, or hit another player.**
+**The edge cases are part of the game.**
 
 ---
 
-# 🧩 Developer-Friendly Game Architecture
+# 🕹️ Current Platform Foundation
 
-MindBop is designed to evolve into a platform where games can be plugged into a common ecosystem.
+The repository already contains the foundation of a real multiplayer browser-game platform.
 
-A game should be able to define things such as:
+### Platform capabilities
+
+- 🔐 Guest-first player identity
+- 🚪 Private multiplayer rooms
+- 🔗 Shareable room codes and links
+- 👑 Host management and transfer
+- 🔄 Reconnect handling
+- 🌐 Real-time Socket.IO communication
+- 🛡️ Server-authoritative multiplayer state
+- 🧊 Babylon.js browser 3D rendering
+- 📱 Responsive interfaces
+- 👆 Touch-oriented interaction support
+- 🗂️ Game catalog and categories
+- 🔎 Game discovery/search
+- 🎮 Solo and multiplayer game routes
+- 💬 Player feedback collection
+- 🗄️ Optional Supabase persistence
+- 🧪 Automated tests
+- 🌐 Browser E2E testing
+- 📊 Multiplayer load-testing infrastructure
+
+The architecture is intentionally moving toward **independent game modules on top of shared platform infrastructure**.
+
+---
+
+# 🧩 Platform Architecture
 
 ```text
-Game metadata
-├── name
-├── slug
-├── description
-├── cover art
-├── screenshots
-├── categories
-├── supported player count
-├── multiplayer / solo
-└── status
-
-Game runtime
-├── lobby
-├── room state
-├── player state
-├── game rules
-├── actions
-├── scoring
-├── timers
-├── win conditions
-└── results
+                              ┌──────────────────────┐
+                              │       MINDBOP        │
+                              │    GAMING PLATFORM   │
+                              └───────────┬──────────┘
+                                          │
+              ┌───────────────────────────┼──────────────────────────┐
+              │                           │                          │
+          LANDING PAGE                 GAME HUB                 COMMUNITY
+              │                           │                          │
+              │                 ┌─────────┼─────────┐                │
+              │                 │         │         │                │
+              │              SOCIAL    MYSTERY   ARCADE              │
+              │                 │         │         │                │
+              └─────────────────┴─────────┴─────────┴────────────────┘
+                                          │
+                                   CREATE / JOIN
+                                          │
+                                        ROOM
+                                          │
+                         ┌────────────────┴────────────────┐
+                         │                                 │
+                    PLAYER CLIENT                     GAME SERVER
+                         │                                 │
+                  UI / INPUT / RENDER               RULES / STATE
+                         │                                 │
+                         └────────────────┬────────────────┘
+                                          │
+                                  SHARED SERVICES
+                                          │
+                              ┌───────────┴───────────┐
+                              │                       │
+                           Supabase              Future Scale Layer
+                                                 Redis / routing / etc.
 ```
 
-The exact integration contract will continue to evolve as the platform grows. Developers should read the current integration documentation before building a game against the repository.
+The client presents the game and collects input.
+
+The server owns the rules that matter.
+
+That distinction is fundamental to multiplayer integrity: **never trust the browser to declare its own score, position, victory, damage, or privileged game state.**
 
 ---
 
-# 🧑‍💻 Build a Game for MindBop
+# 🧑‍💻 Build Games for MindBop
 
-**Yes — we want developers to build here.**
+**Developers are welcome.**
 
-If you are a developer with a game idea, you should be able to clone this repository, understand the architecture, build an original game, test it locally, and submit it for inclusion in the MindBop catalog.
+If you have an original game idea, the long-term goal is for you to be able to:
 
-We are especially interested in:
+1. Clone the repository.
+2. Understand the platform architecture.
+3. Build your game as an isolated module.
+4. Reuse MindBop room/session infrastructure.
+5. Test the game locally.
+6. Submit it for review.
+7. Ship it to real players.
+
+We're especially interested in:
 
 - Multiplayer party games
 - Social deduction
 - Murder mysteries
 - Co-op investigations
 - Drawing games
+- Comedy/voting games
 - Competitive mini-games
 - Physics games
 - Browser-first 3D games
 - Strategy games
+- Mobile-first games
 - Weird experimental multiplayer games
-- Games designed specifically for phones
-- Games designed specifically for office / friend groups
 
-### The golden rule
+### 🧠 Have a ridiculous idea?
 
-**Build something people can understand quickly and want to play again.**
+Good.
 
-A beautiful game with terrible multiplayer UX isn't enough.
-A clever mechanic with a broken room system isn't enough.
-A technically impressive game that takes 30 minutes to understand isn't necessarily enough.
+Tell us.
 
-MindBop games should feel:
+The next great MindBop game might start as a sentence nobody has built before.
 
-> **Open → Join → Understand → Play → Laugh → Replay**
+Use a [game proposal](.github/ISSUE_TEMPLATE/game_proposal.md), open a discussion, or contribute directly when the change is small and well understood.
 
 ---
 
 # 📦 Publishing a Game
 
-MindBop supports an open contribution model, but publishing a game is not simply dropping a folder into the repository.
+MindBop is open to contributions, but publishing a game is more than adding a folder and hoping for the best.
 
-Every submitted game should be:
+A production candidate should be:
 
 - Original or properly licensed
 - Safe for its intended audience
 - Playable in supported browsers
-- Responsive on supported screen sizes
-- Tested for reconnects and room lifecycle
+- Responsive on supported devices
 - Reasonably performant
-- Clear about its supported player count
-- Free of secrets embedded in client code
-- Respectful of user privacy
-- Compatible with the platform's multiplayer model
-- Documented well enough for another developer to maintain
+- Clear about supported player count
+- Tested across room lifecycle states
+- Designed for reconnect/disconnect behavior when multiplayer
+- Free of embedded secrets
+- Respectful of privacy
+- Documented for future maintainers
 
-See:
+Read:
 
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - [`docs/game-publishing.md`](docs/game-publishing.md)
 - [`docs/third-party-games.md`](docs/third-party-games.md)
 
-for the contribution and publishing process.
+---
+
+# 🎨 Design Language
+
+MindBop should feel **playful, premium, modern and alive**.
+
+Our visual direction favors:
+
+- 🫧 Tasteful glass surfaces
+- ✨ Fluid motion
+- 🎨 Bold but controlled color
+- 🧊 Polished 3D presentation
+- 🎮 Playful interactions
+- 📐 Clean layouts
+- 📱 Responsive composition
+- 🔊 Purposeful sound and feedback
+
+But there is one rule above all of them:
+
+> **If an effect looks cool but makes the game harder to use or slower to run, remove it.**
+
+Performance is part of design.
 
 ---
 
-# 🛠️ Local Development
+# 🧑‍🎨 Originality & Game Rights
 
-## Requirements
+MindBop encourages genre inspiration, not cloning protected creative expression.
 
-- Node.js 22.17+
-- npm
-- Git
-- A modern Chromium-based browser for the easiest development experience
+Contributors must not submit copied:
 
-## Install
+- Characters
+- Logos
+- Maps
+- UI artwork
+- Text
+- Code
+- Music
+- Sound effects
+- Proprietary models
+- Branding
+- Distinctive protected game content
 
-```bash
-npm ci
-```
+Third-party assets must have appropriate rights and attribution.
 
-## Start development
+See [`docs/third-party-games.md`](docs/third-party-games.md).
 
-```bash
-npm run dev
-```
-
-Then open:
-
-```text
-http://localhost:3000/play
-```
-
-Create a room and invite another browser using its room code.
-
-For local phone testing over the same network, configure the development origin appropriately and use the LAN address from the device.
+**Inspired by a genre? Great. Copying another game's protected content? No.**
 
 ---
 
-# 🧪 Quality First
+# 🧪 Quality Engineering
 
-We don't want MindBop to be a collection of pretty demos.
+We don't want a museum of pretty demos.
 
-A game isn't finished because it looks good in one browser tab.
-
-Every meaningful feature should be tested across the things that can actually break multiplayer games:
+A MindBop game should be tested like software people are actually going to use.
 
 ### Functional
 
-- Can players create rooms?
-- Can players join?
-- Can players leave?
-- Can the host disconnect?
-- Can a player reconnect?
-- Does the game start correctly?
-- Can the match finish?
-- Is the result correct?
+- Room creation
+- Room joining
+- Player leaving
+- Host disconnect
+- Reconnect
+- Match start
+- Match completion
+- Correct scoring
+- Correct results
 
 ### Multiplayer
 
-- Is state authoritative?
-- Are invalid actions rejected?
-- Are duplicate actions safe?
-- Are stale inputs handled?
-- Are rooms isolated?
-- Can one room affect another?
+- Server authority
+- Input validation
+- Duplicate-action safety
+- Room isolation
+- Stale input handling
+- Connection loss
+- Recovery paths
 
 ### Performance
 
-- Does the client maintain an acceptable frame rate?
-- Does server tick time remain healthy?
-- Does bandwidth remain reasonable?
-- Does memory remain stable?
-- What happens when many rooms are active simultaneously?
+- Client frame rate
+- Server tick time
+- Bandwidth
+- Memory stability
+- Active room count
+- Concurrent player load
 
-### Responsive design
+### Responsive
 
 - Desktop
 - Laptop
 - Tablet
 - Mobile
-- Touch interaction
-- Keyboard interaction
-- Different viewport sizes
+- Touch
+- Keyboard
+- Multiple viewport sizes
 
-### Failure cases
+### Failure states
 
-- Lost connection
 - Slow connection
-- Refresh during a match
-- Browser tab suspension
-- Duplicate clicks
-- Invalid room code
+- Lost connection
+- Refresh during match
+- Browser suspension
+- Invalid room
 - Full room
+- Unexpected disconnect
 - Server restart
-- Unexpected player disconnect
-
-**A multiplayer game is only as good as its failure handling.**
 
 ---
 
-# 🔬 Current Verification Commands
+# 🔬 Developer Commands
+
+```bash
+npm ci
+npm run dev
+```
+
+Quality checks:
 
 ```bash
 npm run typecheck
 npm run lint
 npm test
 npm run build
+```
+
+Browser testing:
+
+```bash
 npx playwright install chromium
 npm run test:e2e
+```
+
+Load testing:
+
+```bash
 npm run test:load
 ```
 
-The repository includes browser and load-test infrastructure. Load tests are useful for measuring the current implementation, but they are **not a claim that MindBop currently supports an arbitrary number of concurrent players**.
-
-Real capacity must be measured against a specific deployment, game, room size, network profile and hardware configuration.
+> Load-test results are measurements, not marketing claims. Real capacity depends on the game, room size, server hardware, network conditions, deployment architecture and client devices.
 
 ---
 
 # 📈 Scaling MindBop
 
-The long-term platform is intended to scale beyond a single game server.
+The platform is being designed to grow beyond a single game-server process.
 
-The target architecture will evolve toward:
+The long-term direction is:
 
 ```text
-                         Internet
-                            │
-                     Load Balancer
-                            │
-                ┌───────────┴───────────┐
-                │                       │
-          Game Server A           Game Server B
-                │                       │
-          ┌─────┼─────┐           ┌─────┼─────┐
-          │     │     │           │     │     │
-        Room  Room  Room         Room  Room  Room
-          │     │     │           │     │     │
-          └─────┴─────┴───────────┴─────┴─────┘
-                            │
-                       Shared Services
-                            │
-                    ┌───────┴────────┐
-                    │                │
-                   Redis          Supabase
+                              INTERNET
+                                  │
+                           LOAD BALANCER
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │                           │
+              GAME SERVER A               GAME SERVER B
+                    │                           │
+             ┌──────┼──────┐            ┌──────┼──────┐
+             │      │      │            │      │      │
+           Room   Room   Room          Room   Room   Room
+             │      │      │            │      │      │
+             └──────┴──────┴────────────┬──────┴──────┘
+                                        │
+                                 SHARED SERVICES
+                                        │
+                              ┌─────────┴─────────┐
+                              │                   │
+                            Redis              Supabase
 ```
 
 Potential production infrastructure includes:
 
 - Multiple game-server instances
 - Room-aware routing
-- Redis for shared coordination where appropriate
 - Horizontal scaling
+- Shared coordination where required
 - Dedicated game-server processes
 - Metrics and observability
 - Rate limiting
 - Connection management
-- Graceful deployment strategies
+- Graceful deployments
 - Per-game capacity testing
 
-**We will measure before we promise.**
+**We measure before we promise.**
 
-There will never be a fake "10,000 players supported" badge just because a number was written in a README.
-
----
-
-# 🎨 Design Philosophy
-
-MindBop should feel like a place people want to stay.
-
-Our visual direction is:
-
-- Playful
-- Modern
-- Expressive
-- Clean
-- Colorful
-- Slightly chaotic in the fun way
-- Smooth rather than overloaded
-- Responsive rather than cramped
-- Game-like without looking childish
-
-We like:
-
-✨ expressive motion
-
-🪟 tasteful glass surfaces
-
-🎨 bold but controlled color
-
-🫧 fluid transitions
-
-🎮 playful interactions
-
-🧊 polished 3D presentation
-
-📱 layouts that actually work on phones
-
-But visual effects should never sacrifice readability or performance.
-
-**If an animation looks cool but makes the game harder to use, it loses.**
+MindBop will not claim a player capacity simply because a large number looks impressive in a README.
 
 ---
 
-# 🧑‍🎨 Game Art & Originality
+# 🤝 Open Source
 
-MindBop encourages original game identities.
+MindBop is being built with the goal of becoming a welcoming open-source game platform.
 
-A game may have inspiration from an existing genre, but contributors must not copy:
-
-- Characters
-- Logos
-- Names
-- Maps
-- UI artwork
-- Text
-- Code
-- Proprietary assets
-- Sounds
-- Branding
-- Distinctive protected game content
-
-If third-party assets are used, contributors must have the necessary rights and document the license and attribution.
-
-**Genre inspiration is welcome. Asset copying is not.**
-
----
-
-# 🤝 Contributing
-
-MindBop is intended to become a community-driven project.
-
-You can contribute without creating an entire game.
-
-Ideas include:
+Contributions can include:
 
 - 🐛 Bug fixes
 - 🎮 New games
-- 🧩 New game mechanics
-- 🎨 UI improvements
-- ✨ Animations
-- ⚡ Performance improvements
+- 🧩 New mechanics
+- 🎨 UI/UX
+- ✨ Animation
+- ⚡ Performance
 - 🌐 Accessibility
 - 📱 Mobile improvements
 - 🔌 Multiplayer infrastructure
-- 🧪 Tests
+- 🧪 Testing
 - 📚 Documentation
-- 🎵 Audio systems
+- 🎵 Audio
 - 🗺️ Maps and environments
 - 🛠️ Developer tooling
 
-Before starting a large feature, open an issue or discussion so the architecture can be reviewed first.
-
-Small improvements are welcome as pull requests.
-
-Large game submissions should follow the game publishing guide.
+Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before starting substantial work.
 
 ---
 
-# 💡 Have a Game Idea?
+# 🛡️ Security
 
-**Tell us.**
+Security matters especially for multiplayer software.
 
-Seriously.
+Contributors must:
 
-Maybe it's:
+- Never commit API keys or secrets.
+- Validate user-controlled input.
+- Validate server-bound game actions.
+- Never trust client-reported scores or privileged state.
+- Keep server-only credentials out of browser bundles.
+- Rate-limit abuse-prone endpoints/actions.
 
-> "What if six people were trapped in a train and one of them secretly caused the accident?"
-
-or:
-
-> "What if everyone has to build the same ridiculous machine while the physics engine slowly falls apart?"
-
-or:
-
-> "What if Mafia happened inside a 3D spaceship?"
-
-Those are exactly the kinds of conversations that can become MindBop games.
-
-Use the project's feedback system or open an issue with your concept.
-
-We want the catalog to be shaped by **players and developers**, not just by a fixed roadmap.
+Security vulnerabilities should be reported privately according to [`SECURITY.md`](SECURITY.md), not published as public exploit issues.
 
 ---
 
-# 🏆 The MindBop Game Standard
+# ♿ Accessibility
 
-Before a game is considered ready for the main catalog, ask:
+MindBop aims to make the platform usable by as many players as reasonably possible.
 
-### 🎮 Is it actually fun?
+We care about:
 
-Not just technically impressive.
+- Keyboard navigation
+- Visible focus states
+- Readable contrast
+- Reduced-motion preferences
+- Non-color-only status indicators
+- Touch usability
+- Clear loading and error states
 
-### 👥 Is multiplayer actually meaningful?
+See [`ACCESSIBILITY.md`](ACCESSIBILITY.md).
 
-Would the game still make sense if everyone wasn't in the same room?
+---
 
-### ⚡ Is it responsive?
+# 📚 Project Governance & Community Files
 
-Actions should feel immediate.
+MindBop includes the foundation expected from a serious open-source project:
 
-### 🔄 Can it survive real-world multiplayer problems?
+| File | Purpose |
+|---|---|
+| [`LICENSE`](LICENSE) | Open-source software license |
+| [`NOTICE`](NOTICE) | Copyright and third-party rights notice |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contributor workflow and standards |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Community behavior standards |
+| [`SECURITY.md`](SECURITY.md) | Vulnerability reporting guidance |
+| [`SUPPORT.md`](SUPPORT.md) | Player/developer support |
+| [`ACCESSIBILITY.md`](ACCESSIBILITY.md) | Accessibility goals |
+| [`CITATION.cff`](CITATION.cff) | Software citation metadata |
+| [`docs/game-publishing.md`](docs/game-publishing.md) | Game submission standards |
+| [`docs/third-party-games.md`](docs/third-party-games.md) | External game/asset rights |
+| [`.github/`](.github/) | CI, Dependabot, issue and PR workflows |
 
-Disconnects happen. People refresh pages. Wi-Fi disappears. Design for it.
-
-### 📱 Does it respect the player's device?
-
-A beautiful game that melts a phone is not a good web game.
-
-### 🧠 Can a new player understand it?
-
-The first minute matters.
-
-### 🔁 Is there a reason to play again?
-
-Replayability is part of the design, not an afterthought.
+These files are intended to make MindBop easier to understand, contribute to, secure, and maintain.
 
 ---
 
 # 🗺️ Roadmap
 
-The roadmap will evolve with the community, but the broad direction is:
-
 - [x] Browser-first game platform
 - [x] Private multiplayer rooms
 - [x] Guest-first play
 - [x] Game catalog
-- [x] First playable 3D mystery
+- [x] 3D game foundation
 - [x] Reconnect handling
-- [x] Browser E2E testing
-- [x] Multiplayer load testing foundation
-- [ ] Expand the multiplayer game catalog
-- [ ] Improve game publishing tooling
-- [ ] More social/party games
+- [x] Browser E2E testing foundation
+- [x] Multiplayer load-testing foundation
+- [x] Open-source contribution foundation
+- [ ] Expand the game catalog
+- [ ] More social and party games
 - [ ] More 3D games
 - [ ] Developer-facing game SDK/contracts
-- [ ] Better game analytics
+- [ ] Improved game publishing tooling
 - [ ] Production observability
 - [ ] Multi-instance room routing
 - [ ] Horizontal game-server scaling
-- [ ] Community publishing workflow
-- [ ] Developer profiles / publisher pages
+- [ ] Developer profiles
 - [ ] Game ratings and discovery
-- [ ] Curated featured games
+- [ ] Featured-game system
 - [ ] More accessibility tooling
+- [ ] Community-driven game publishing
 
 ---
 
-# 🌍 The Bigger Goal
-
-MindBop should eventually feel less like:
-
-> "Here is a website with a few games."
-
-and more like:
-
-> **"This is where my friends and I go when we want to play something."**
-
-And for developers:
-
-> **"This is somewhere I can build a multiplayer game, get it in front of real players, and become part of the platform."**
-
-That's the ecosystem we're aiming for.
-
----
-
-# 🧑‍💻 Project Structure
-
-A simplified view of the repository:
+# 🏗️ Repository Structure
 
 ```text
 mindbop-gaming/
@@ -679,92 +575,70 @@ mindbop-gaming/
 │   ├── app/                 # Next.js routes and pages
 │   ├── components/          # Shared UI components
 │   ├── games/               # Client-side game implementations
-│   └── lib/                 # Shared application utilities
+│   └── lib/                 # Platform utilities and integrations
 │
 ├── server/
 │   ├── games/               # Server-side game rules
 │   ├── engine.ts            # Room/game engine
-│   └── index.ts             # HTTP + Socket.IO server
+│   └── index.ts             # HTTP + real-time server
 │
-├── docs/
-│   ├── game-publishing.md   # How to propose/publish a game
-│   ├── third-party-games.md  # Third-party integration rules
-│   └── ...
-│
-├── tests/                   # Unit, integration and E2E tests
+├── docs/                    # Architecture and publishing docs
+├── tests/                   # Automated tests
 ├── public/                  # Public assets
-├── scripts/                 # Development/load tooling
+├── scripts/                 # Tooling and load tests
+├── .github/                 # CI, Dependabot and contribution templates
+│
+├── LICENSE
+├── NOTICE
 ├── CONTRIBUTING.md
-├── package.json
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+├── SUPPORT.md
+├── ACCESSIBILITY.md
+├── CITATION.cff
 └── README.md
 ```
 
 ---
 
-# 🔐 Security & Privacy
+# ⭐ Support MindBop
 
-MindBop takes multiplayer trust seriously.
-
-The client should never be treated as authoritative for sensitive game state.
-
-Contributors must:
-
-- Never commit API keys or secrets
-- Validate server-bound actions
-- Validate user-controlled input
-- Avoid trusting client-reported scores
-- Rate-limit abuse-prone actions
-- Keep server-only secrets out of browser bundles
-- Follow the repository's privacy/security guidance
-
-If you discover a security issue, please do **not** publish an exploit in a public issue. Contact the project maintainer privately first.
-
----
-
-# 📜 Licensing
-
-The repository's code, game content, third-party assets and future published games may have different licensing requirements.
-
-**Do not assume that everything in the repository is automatically available for commercial reuse.**
-
-Check the applicable license and each game's asset attribution before redistributing content.
-
-Third-party game submissions must provide clear evidence that the contributor has the necessary rights to distribute the submitted game and its assets.
-
----
-
-# ⭐ Support the Project
-
-If you like the idea behind MindBop:
+If you believe browser gaming can be more social, more creative, and easier to build for:
 
 - ⭐ Star the repository
 - 🐛 Report bugs
-- 💡 Suggest games
+- 💡 Propose games
 - 🧑‍💻 Contribute code
-- 🎨 Contribute art or design
-- 🧪 Help test games
-- 📢 Share the platform with your friends
-- 🎮 Build a game for MindBop
+- 🎨 Contribute design/art
+- 🧪 Test games
+- 📚 Improve documentation
+- 📢 Share MindBop with your friends
+- 🎮 Build something for the platform
 
-The easiest way to help is simple:
+The easiest contribution is also the most useful:
 
-**Play something. Then tell us what should exist next.**
-
----
-
-# 🎮 Play MindBop
-
-## **Ready? Create a room. Send the code. Start playing.**
-
-### 👉 https://mindbop-gaming.onrender.com/
+> **Play something. Break something. Tell us what should exist next.**
 
 ---
 
-<p align="center">
-  <strong>MindBop Gaming</strong><br/>
-  <em>Games for friends. Games by developers. Games for the web.</em>
-</p>
+# 🚀 Play MindBop
 
-<p align="center">
-  Built with curiosity, multiplayer chaos, and an unreasonable number of ideas. 🧠🎮
-</p>
+<div align="center">
+
+## **Create a room. Send the code. Start playing.**
+
+### 🎮 [PLAY MINDBOP](https://mindbop-gaming.onrender.com/)
+
+</div>
+
+---
+
+<div align="center">
+
+### 🧠 MindBop Gaming
+
+**Games for friends. Games by developers. Games for the web.**
+
+Built with curiosity, multiplayer chaos, and an unreasonable number of ideas. 🧠🎮
+
+</div>
