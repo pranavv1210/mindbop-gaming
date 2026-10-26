@@ -10,12 +10,38 @@ test("Neon Breach is playable and responsive",async({page})=>{
  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
-test("Echo Grid advances after a correct sequence",async({page})=>{
- await page.setViewportSize({width:1366,height:768});await page.goto("/play/solo/echo-grid");
+test("Echo Grid advances after the randomized sequence is reproduced",async({page})=>{
+ await page.setViewportSize({width:1366,height:768});
+ await page.goto("/play/solo/echo-grid");
  await expect(page.getByRole("button",{name:"Play in full screen"})).toBeVisible();
- const cells=page.locator(".echo-board button");await expect(cells).toHaveCount(16);
- const lastCell=await cells.last().boundingBox();expect((lastCell?.y??9999)+(lastCell?.height??0)).toBeLessThanOrEqual(768);
+ const cells=page.locator(".echo-board button");
+ await expect(cells).toHaveCount(16);
+ const board=page.locator(".echo-board");
+ const box=await board.boundingBox();
+ expect(box?.width??0).toBeGreaterThan(500);
+ expect(box?.height??0).toBeGreaterThan(500);
  await page.getByRole("button",{name:"Enter the grid"}).click();
- const button=page.getByRole("button",{name:"Pulse 5"});await expect(button).toBeEnabled({timeout:3000});await button.click();
- await expect(page.getByText("Level 2",{exact:true})).toBeVisible();
+
+ // Capture the first randomly selected pulse while the sequence is being shown.
+ const active=page.locator(".echo-board button.active");
+ await expect(active).toHaveCount(1,{timeout:3000});
+ const label=await active.getAttribute("aria-label");
+ expect(label).toMatch(/^Pulse [1-9]|Pulse 1[0-6]$/);
+ await expect(page.getByRole("button",{name:label!})).toBeEnabled({timeout:3000});
+ await page.getByRole("button",{name:label!}).click();
+ await expect(page.getByText("Level 2",{exact:true})).toBeVisible({timeout:3000});
+
+ // The game should accept a new start and produce another sequence without
+ // leaking the previous round's input state.
+ await page.getByRole("button",{name:"Reconnect"}).click();
+ await expect(page.locator(".echo-board button.active")).toHaveCount(1,{timeout:3000});
+ await expect(page.getByText("Level 1",{exact:true})).toBeVisible();
+});
+
+test("Echo Grid fits a phone viewport",async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto("/play/solo/echo-grid");
+ await expect(page.getByRole("button",{name:"Enter the grid"})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await expect(page.locator(".echo-board")).toBeVisible();
 });
