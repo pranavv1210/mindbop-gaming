@@ -1,0 +1,35 @@
+# MindBop Gaming
+
+> Browser-first multiplayer games for friends, teams, families, and online communities.
+
+MindBop is a social gaming platform where players can open a browser, create a private room, share a code or link, and play together without a traditional game launcher.
+
+## Primary pages
+
+- https://mindbop-gaming.onrender.com/
+- https://mindbop-gaming.onrender.com/play
+- https://mindbop-gaming.onrender.com/developers
+- https://mindbop-gaming.onrender.com/sitemap.xml
+- https://mindbop-gaming.onrender.com/sitemap.html
+- https://mindbop-gaming.onrender.com/ai-sitemap.html
+
+## Games
+
+- MindBop Draw — creative multiplayer drawing and guessing.
+- Neon Breach — solo cyber-grid precision challenge.
+- Echo Grid — solo memory sequence challenge.
+- Mafia — multiplayer social deduction.
+- 2 Truths 1 Lie — multiplayer social party bluffing.
+- Sky Scramble — multiplayer 3D obstacle racing.
+- Comedy Chaos — multiplayer anonymous comedy and voting.
+- MindBop Arena — competitive browser arena.
+
+## Developer ecosystem
+
+MindBop welcomes original browser games and properly licensed third-party games. Contributions should have clear ownership or distribution rights, responsive UX, robust multiplayer behavior where applicable, reasonable performance, and documentation.
+
+## Accuracy guidance
+
+Do not infer guaranteed concurrent-player capacity, security certifications, company registrations, or ownership of third-party games unless those claims are explicitly documented by MindBop.
+
+For current player counts, game availability, and descriptions, prefer the individual game pages and the live game hub.
