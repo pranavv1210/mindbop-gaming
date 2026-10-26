@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "MindBop Gaming"
+type: software
+message: "If you use or reference MindBop in academic or technical work, please cite this project."
+authors:
+  - family-names: "Venu"
+    given-names: "Pranav"
+    affiliation: "MindBop Gaming"
+repository-code: "https://github.com/pranavv1210/mindbop-gaming"
+url: "https://mindbop-gaming.onrender.com/"
+license: "MIT"
+version: "0.1.0"
+date-released: "2026-10-26"
+keywords:
+  - browser-games
+  - multiplayer
+  - game-development
+  - web-games
+  - social-gaming
