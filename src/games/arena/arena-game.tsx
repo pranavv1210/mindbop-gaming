@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Crosshair, LogOut, Maximize2, Shield, Zap } from "lucide-react";
+import { Crosshair, LogOut, Maximize2, Shield, Zap, Wifi } from "lucide-react";
 import { useGame } from "@/components/game-provider";
 import type { RoomView } from "@/lib/protocol";
 import type { ArenaScene } from "./arena-scene";
@@ -25,20 +25,35 @@ export function ArenaGame({ room, leave }: { room: RoomView<ArenaView>; leave: (
   const scene = useRef<ArenaScene | null>(null);
   const latest = useRef(room.game!);
   const keys = useRef(new Set<string>());
+  const serverOffset = useRef(room.serverTime - Date.now());
   const [locked, setLocked] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [weapon, setWeapon] = useState<ArenaWeapon>("pulse");
   const [hero, setHero] = useState<ArenaHero>("striker");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => { latest.current = room.game!; scene.current?.update(room.game!); }, [room]);
   useEffect(() => {
-    let disposed = false; let current: ArenaScene | null = null;
+    latest.current = room.game!;
+    serverOffset.current = room.serverTime - Date.now();
+    scene.current?.update(room.game!);
+  }, [room]);
+
+  useEffect(() => {
+    let disposed = false;
+    let current: ArenaScene | null = null;
     import("./arena-scene").then(({ createArenaScene }) => {
       if (disposed || !canvas.current) return;
-      current = createArenaScene(canvas.current, id); scene.current = current; current.update(latest.current); setLoaded(true);
+      current = createArenaScene(canvas.current, id);
+      scene.current = current;
+      current.setWeapon(weapon);
+      current.update(latest.current);
+      setLoaded(true);
     });
-    return () => { disposed = true; current?.dispose(); scene.current = null; };
+    return () => {
+      disposed = true;
+      current?.dispose();
+      scene.current = null;
+    };
   }, [id]);
 
   const fire = () => {
@@ -46,10 +61,19 @@ export function ArenaGame({ room, leave }: { room: RoomView<ArenaView>; leave: (
     const aim = scene.current?.getAim();
     if (!aim) return;
     scene.current?.fire();
-    void send({ type: "game", action: { type: "shoot", weapon, ...aim } });
+    const shotAt = Date.now() + serverOffset.current;
+    void send({ type: "game", action: { type: "shoot", weapon, shotAt, ...aim } });
   };
-  const chooseWeapon = (next: ArenaWeapon) => { setWeapon(next); scene.current?.setWeapon(next); void send({ type: "game", action: { type: "weapon", weapon: next } }); };
-  const chooseHero = (next: ArenaHero) => { setHero(next); void send({ type: "game", action: { type: "hero", hero: next } }); };
+  const chooseWeapon = (next: ArenaWeapon) => {
+    setWeapon(next);
+    scene.current?.setWeapon(next);
+    void send({ type: "game", action: { type: "weapon", weapon: next } });
+  };
+  const chooseHero = (next: ArenaHero) => {
+    setHero(next);
+    scene.current?.setHero(next);
+    void send({ type: "game", action: { type: "hero", hero: next } });
+  };
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -64,12 +88,34 @@ export function ArenaGame({ room, leave }: { room: RoomView<ArenaView>; leave: (
     const up = (e: KeyboardEvent) => keys.current.delete(e.code);
     const mouse = (e: MouseEvent) => { if (document.pointerLockElement === canvas.current) scene.current?.look(e.movementX, e.movementY); };
     const lock = () => setLocked(document.pointerLockElement === canvas.current);
-    window.addEventListener("keydown", down); window.addEventListener("keyup", up); window.addEventListener("mousemove", mouse); window.addEventListener("mousedown", fire); document.addEventListener("pointerlockchange", lock);
-    const timer = setInterval(() => { const k = keys.current; move((k.has("KeyD") ? 1 : 0) - (k.has("KeyA") ? 1 : 0), (k.has("KeyW") ? 1 : 0) - (k.has("KeyS") ? 1 : 0), k.has("Space"), k.has("ShiftLeft")); k.delete("Space"); }, 40);
-    return () => { clearInterval(timer); move(0, 0); window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("mousemove", mouse); window.removeEventListener("mousedown", fire); document.removeEventListener("pointerlockchange", lock); };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("mousemove", mouse);
+    window.addEventListener("mousedown", fire);
+    document.addEventListener("pointerlockchange", lock);
+    const timer = setInterval(() => {
+      const k = keys.current;
+      const x = (k.has("KeyD") ? 1 : 0) - (k.has("KeyA") ? 1 : 0);
+      const z = (k.has("KeyW") ? 1 : 0) - (k.has("KeyS") ? 1 : 0);
+      const sprint = k.has("ShiftLeft");
+      scene.current?.setInput(x, z, sprint);
+      move(x, z, k.has("Space"), sprint);
+      k.delete("Space");
+    }, 40);
+    return () => {
+      clearInterval(timer);
+      move(0, 0);
+      scene.current?.setInput(0, 0, false);
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("mousemove", mouse);
+      window.removeEventListener("mousedown", fire);
+      document.removeEventListener("pointerlockchange", lock);
+    };
   }, [move, send, weapon]);
 
-  const game = room.game!; const me = game.players[id];
+  const game = room.game!;
+  const me = game.players[id];
   const teamScore = me?.team === "ember" ? game.scores.ember : game.scores.azure;
   const enemyScore = me?.team === "ember" ? game.scores.azure : game.scores.ember;
   return (
@@ -78,7 +124,7 @@ export function ArenaGame({ room, leave }: { room: RoomView<ArenaView>; leave: (
       <div className={styles.topbar}>
         <div className={styles.brand}><span className={styles.liveDot} /> <strong>MINDBOP ARENA</strong><small>NEON DISTRICT</small></div>
         <div className={styles.score}><span className={styles.ember}>{teamScore}</span><b>—</b><span className={styles.azure}>{enemyScore}</span><small>CAPTURE ZONE</small></div>
-        <div className={styles.topActions}><span>{Math.ceil(game.timeLeft)}s</span><button onClick={() => canvas.current?.requestFullscreen()} title="Fullscreen"><Maximize2 /></button><button onClick={() => setMenuOpen((v) => !v)} aria-label="Open arena menu">•••</button></div>
+        <div className={styles.topActions}><span>{Math.ceil(game.timeLeft)}s</span><span className={styles.connection}><Wifi /> LIVE</span><button onClick={() => canvas.current?.requestFullscreen()} title="Fullscreen"><Maximize2 /></button><button onClick={() => setMenuOpen((v) => !v)} aria-label="Open arena menu">•••</button></div>
       </div>
       <div className={styles.leftHud}><div className={styles.stat}><span>ARMOR</span><b>{Math.max(0, Math.round(me?.hp ?? 0))}</b><i><span style={{ width: `${Math.max(0, Math.min(100, me ? (me.hp / me.maxHp) * 100 : 0))}%` }} /></i></div><div className={styles.stat}><span>K / D</span><b>{me?.kills ?? 0} / {me?.deaths ?? 0}</b></div></div>
       <div className={styles.zoneHud}><span className={styles.zonePulse} /> ZONE {game.zone.owner ? `CONTROLLED BY ${game.zone.owner.toUpperCase()}` : "CONTESTED"}<strong>{Math.round(game.zone.progress)}%</strong></div>
