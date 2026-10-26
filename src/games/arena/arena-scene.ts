@@ -9,7 +9,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import type { ArenaView, ArenaWeapon } from "./types";
+import type { ArenaMapId, ArenaView, ArenaWeapon } from "./types";
 
 export type ArenaScene = {
   update: (view: ArenaView) => void;
@@ -19,30 +19,41 @@ export type ArenaScene = {
   setHero: (hero: string) => void;
   getAim: () => { yaw: number; pitch: number };
   setInput: (x: number, z: number, sprint: boolean) => void;
+  setAimMode: (active: boolean) => void;
   dispose: () => void;
+};
+
+const MAP_THEME: Record<ArenaMapId, { accent: string; secondary: string }> = {
+  "neon-yard": { accent: "#42e8ff", secondary: "#7f6cff" },
+  skyline: { accent: "#74ffbd", secondary: "#42a5ff" },
+  reactor: { accent: "#ff9a57", secondary: "#ff5e87" },
 };
 
 export function createArenaScene(canvas: HTMLCanvasElement, localId: string): ArenaScene {
   const engine = new Engine(canvas, true, { powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: false });
+  const quality = localStorage.getItem("mindbop-arena-quality") ?? "auto";
   const mobile = matchMedia("(max-width: 700px)").matches;
-  engine.setHardwareScalingLevel(mobile ? 1.45 : innerWidth * innerHeight > 2_000_000 ? 1.15 : 1);
+  const lowPower = quality === "low" || (quality === "auto" && mobile);
+  const highQuality = quality === "high" || quality === "ultra";
+  engine.setHardwareScalingLevel(quality === "low" ? 1.65 : mobile ? 1.4 : highQuality ? 0.92 : innerWidth * innerHeight > 2_000_000 ? 1.08 : 1);
+
   const scene = new Scene(engine);
-  scene.clearColor = new Color4(0.018, 0.026, 0.07, 1);
+  scene.clearColor = new Color4(0.012, 0.018, 0.055, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = 0.008;
-  scene.fogColor = new Color3(0.02, 0.03, 0.09);
+  scene.fogDensity = lowPower ? 0.012 : 0.008;
+  scene.fogColor = new Color3(0.018, 0.028, 0.08);
 
   const camera = new UniversalCamera("arena-camera", new Vector3(0, 2.6, -8), scene);
   camera.fov = Math.PI / 2.25;
   camera.minZ = 0.08;
   const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
-  ambient.intensity = 0.65;
-  ambient.diffuse = new Color3(0.42, 0.5, 1);
+  ambient.intensity = 0.68;
+  ambient.diffuse = new Color3(0.44, 0.52, 1);
   const sun = new DirectionalLight("key", new Vector3(-0.45, -1, 0.35), scene);
-  sun.intensity = 1.15;
-  sun.diffuse = new Color3(0.8, 0.87, 1);
+  sun.intensity = 1.1;
+  sun.diffuse = new Color3(0.82, 0.9, 1);
   const glow = new GlowLayer("arena-glow", scene);
-  glow.intensity = 0.65;
+  glow.intensity = lowPower ? 0.38 : highQuality ? 0.8 : 0.58;
 
   const materials = new Map<string, StandardMaterial>();
   const mat = (hex: string, emissive = 0.08) => {
@@ -52,44 +63,75 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
       m = new StandardMaterial(key, scene);
       m.diffuseColor = Color3.FromHexString(hex);
       m.emissiveColor = m.diffuseColor.scale(emissive);
-      m.specularColor = new Color3(0.45, 0.5, 0.68);
+      m.specularColor = new Color3(0.36, 0.43, 0.62);
       m.freeze();
       materials.set(key, m);
     }
     return m;
   };
-  const box = (name: string, p: Vector3, size: Vector3, color: string, emissive = 0.06) => {
+  const box = (name: string, p: Vector3, size: Vector3, color: string, emissive = 0.05) => {
     const mesh = MeshBuilder.CreateBox(name, { width: size.x, height: size.y, depth: size.z }, scene);
-    mesh.position = p;
+    mesh.position.copyFrom(p);
     mesh.material = mat(color, emissive);
     return mesh;
   };
+  const platform = (x: number, z: number, w: number, d: number, h: number, color: string) => {
+    box("platform", new Vector3(x, h / 2, z), new Vector3(w, h, d), color);
+    box("platform-edge", new Vector3(x, h + 0.04, z), new Vector3(w * 0.94, 0.08, d * 0.94), color, 0.12);
+  };
 
-  box("floor", new Vector3(0, -0.3, 0), new Vector3(42, 0.6, 42), "#101a39");
-  box("floor-inlay", new Vector3(0, 0.02, 0), new Vector3(38, 0.08, 38), "#16234a", 0.12);
-  for (const [x, z, w, d, c] of [
-    [0, 19, 40, 1.2, "#243a70"], [0, -19, 40, 1.2, "#243a70"], [19, 0, 1.2, 40, "#243a70"], [-19, 0, 1.2, 40, "#243a70"],
-    [0, 8, 10, 1.4, "#2d477f"], [0, -8, 10, 1.4, "#2d477f"], [-9, 0, 1.4, 12, "#2d477f"], [9, 0, 1.4, 12, "#2d477f"],
-  ] as (number | string)[][]) box("cover", new Vector3(x as number, 1.2, z as number), new Vector3(w as number, 2.4, d as number), c as string);
+  const mapId: ArenaMapId = "neon-yard";
+  const theme = MAP_THEME[mapId];
+  box("floor", new Vector3(0, -0.3, 0), new Vector3(42, 0.6, 42), "#0c1430");
+  box("floor-inlay", new Vector3(0, 0.02, 0), new Vector3(38, 0.08, 38), "#121e40", 0.11);
+  for (let i = -18; i <= 18; i += 6) {
+    box("lane-line-x", new Vector3(i, 0.075, 0), new Vector3(0.035, 0.025, 36), "#23335f", 0.15);
+    box("lane-line-z", new Vector3(0, 0.078, i), new Vector3(36, 0.025, 0.035), "#23335f", 0.15);
+  }
+  box("north-wall", new Vector3(0, 2.5, 19.4), new Vector3(40, 5, 1), "#18264d");
+  box("south-wall", new Vector3(0, 2.5, -19.4), new Vector3(40, 5, 1), "#18264d");
+  box("east-wall", new Vector3(19.4, 2.5, 0), new Vector3(1, 5, 40), "#18264d");
+  box("west-wall", new Vector3(-19.4, 2.5, 0), new Vector3(1, 5, 40), "#18264d");
 
-  for (const [x, z, c] of [[-16, -16, "#42e8ff"], [16, -16, "#ff5e87"], [-16, 16, "#ff5e87"], [16, 16, "#42e8ff"]] as [number, number, string][]) {
-    const pillar = box("beacon", new Vector3(x, 2.8, z), new Vector3(0.7, 5.6, 0.7), c, 0.9);
-    pillar.rotation.y = Math.PI / 4;
+  const coverLayout = [
+    [-9, 0, 3.8, 1.2, 2.8], [9, 0, 3.8, 1.2, 2.8], [0, -8, 8, 1.2, 2.3], [0, 8, 8, 1.2, 2.3],
+    [-5, -5, 2.8, 2.8, 2.2], [5, 5, 2.8, 2.8, 2.2], [-13, 7, 2.2, 4.6, 2.8], [13, -7, 2.2, 4.6, 2.8],
+  ] as const;
+  for (const [x, z, w, d, h] of coverLayout) box("cover", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#1c2e58");
+  if (!lowPower) {
+    platform(-12, -11, 6, 4, 0.9, "#1b2b50");
+    platform(12, 11, 6, 4, 0.9, "#1b2b50");
+    platform(-12, 11, 4, 6, 0.65, "#1b2b50");
+    platform(12, -11, 4, 6, 0.65, "#1b2b50");
   }
 
-  const zone = MeshBuilder.CreateTorus("capture-zone", { diameter: 9.5, thickness: 0.16, tessellation: 64 }, scene);
+  const beaconSpots = [[-16, -16], [16, -16], [-16, 16], [16, 16]] as const;
+  for (const [x, z] of beaconSpots) {
+    const pillar = box("beacon", new Vector3(x, 2.8, z), new Vector3(0.72, 5.6, 0.72), theme.accent, 0.72);
+    pillar.rotation.y = Math.PI / 4;
+    const cap = box("beacon-cap", new Vector3(x, 5.72, z), new Vector3(1.5, 0.12, 1.5), theme.secondary, 0.75);
+    cap.rotation.y = Math.PI / 4;
+  }
+
+  const zone = MeshBuilder.CreateTorus("capture-zone", { diameter: 9.5, thickness: 0.16, tessellation: lowPower ? 32 : 64 }, scene);
   zone.rotation.x = Math.PI / 2;
   zone.position.y = 0.09;
-  zone.material = mat("#42e8ff", 1);
-  const zoneCore = MeshBuilder.CreateCylinder("capture-core", { diameter: 7.6, height: 0.05, tessellation: 64 }, scene);
+  zone.material = mat(theme.accent, 1);
+  const zoneCore = MeshBuilder.CreateCylinder("capture-core", { diameter: 7.6, height: 0.05, tessellation: lowPower ? 32 : 64 }, scene);
   zoneCore.position.y = 0.04;
-  zoneCore.material = mat("#42e8ff", 0.16);
-  zoneCore.visibility = 0.25;
+  zoneCore.material = mat(theme.accent, 0.13);
+  zoneCore.visibility = 0.28;
+  const zonePillar = MeshBuilder.CreateCylinder("zone-beam", { diameter: 0.22, height: 6, tessellation: 12 }, scene);
+  zonePillar.position.y = 3;
+  zonePillar.material = mat(theme.accent, 0.45);
+  zonePillar.visibility = 0.2;
 
-  const weapon = box("pulse-rifle", new Vector3(0.46, -0.38, 1.05), new Vector3(0.24, 0.2, 0.95), "#7f6cff", 0.25);
+  const weapon = box("weapon-body", new Vector3(0.46, -0.38, 1.05), new Vector3(0.24, 0.2, 0.95), "#7f6cff", 0.25);
   weapon.parent = camera;
-  const weaponGlow = box("rifle-core", new Vector3(0.46, -0.38, 0.72), new Vector3(0.1, 0.08, 0.45), "#42e8ff", 0.9);
-  weaponGlow.parent = camera;
+  const weaponCore = box("weapon-core", new Vector3(0.46, -0.38, 0.72), new Vector3(0.1, 0.08, 0.45), theme.accent, 0.9);
+  weaponCore.parent = camera;
+  const weaponSight = box("weapon-sight", new Vector3(0.46, -0.23, 0.68), new Vector3(0.055, 0.055, 0.28), "#eef4ff", 0.8);
+  weaponSight.parent = camera;
 
   const remotes = new Map<string, Mesh>();
   let yaw = 0;
@@ -99,52 +141,57 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
   let inputX = 0;
   let inputZ = 0;
   let sprint = false;
+  let aiming = false;
   let lastFrame = performance.now();
   let authoritative = new Vector3(0, 2.55, -8);
   const predicted = authoritative.clone();
+
+  function buildRemote(id: string) {
+    const body = MeshBuilder.CreateCapsule(`runner-${id}`, { height: 1.9, radius: 0.45, tessellation: lowPower ? 6 : 10 }, scene);
+    body.metadata = { baseScale: 1 };
+    remotes.set(id, body);
+    return body;
+  }
 
   function update(view: ArenaView) {
     const local = view.players[localId];
     if (local) {
       authoritative.set(local.x, local.y + 1.55, local.z);
-      if (Vector3.Distance(predicted, authoritative) > 3.5) predicted.copyFrom(authoritative);
+      const correction = Vector3.Distance(predicted, authoritative);
+      if (correction > 4) predicted.copyFrom(authoritative);
       else {
-        predicted.x += (authoritative.x - predicted.x) * 0.14;
-        predicted.y += (authoritative.y - predicted.y) * 0.2;
-        predicted.z += (authoritative.z - predicted.z) * 0.14;
+        const blend = Math.min(1, correction > 0.8 ? 0.28 : 0.12);
+        Vector3.LerpToRef(predicted, authoritative, blend, predicted);
       }
       if (Math.abs(local.rotation - yaw) > 0.75) yaw = local.rotation;
       pitch = local.pitch;
     }
-
     for (const [id, mesh] of remotes) {
-      if (!view.playerIds.includes(id) || !view.players[id] || view.players[id].hp <= 0) {
-        mesh.dispose();
-        remotes.delete(id);
-      }
+      const p = view.players[id];
+      if (!view.playerIds.includes(id) || !p || p.hp <= 0) { mesh.dispose(); remotes.delete(id); }
     }
     for (const id of view.playerIds) {
       if (id === localId) continue;
       const p = view.players[id];
       if (!p || p.hp <= 0) continue;
-      let mesh = remotes.get(id);
-      if (!mesh) {
-        mesh = MeshBuilder.CreateCapsule(`runner-${id}`, { height: 1.9, radius: 0.45, tessellation: 10 }, scene);
-        remotes.set(id, mesh);
-      }
-      mesh.material = mat(p.team === "ember" ? "#ff5e87" : "#42e8ff", 0.28);
+      const mesh = remotes.get(id) ?? buildRemote(id);
+      mesh.material = mat(p.cloakedUntil > Date.now() ? "#7f6cff" : p.team === "ember" ? "#ff5e87" : "#42e8ff", p.cloakedUntil > Date.now() ? 0.08 : 0.3);
+      mesh.visibility = p.cloakedUntil > Date.now() ? 0.12 : 1;
       const target = new Vector3(p.x, p.y + 0.9, p.z);
-      mesh.position = Vector3.Lerp(mesh.position, target, 0.18);
+      Vector3.LerpToRef(mesh.position, target, 0.22, mesh.position);
       mesh.rotation.y = p.rotation;
+      mesh.scaling.y = p.shieldUntil > Date.now() ? 1.12 : 1;
     }
-
-    const zoneColor = view.zone.owner === "ember" ? "#ff5e87" : view.zone.owner === "azure" ? "#42e8ff" : "#a58cff";
+    const zoneColor = view.zone.owner === "ember" ? "#ff5e87" : view.zone.owner === "azure" ? "#42e8ff" : theme.secondary;
     zone.material = mat(zoneColor, 1);
     zoneCore.material = mat(zoneColor, 0.12);
-    zone.position.x += (view.zone.x - zone.position.x) * 0.12;
-    zone.position.z += (view.zone.z - zone.position.z) * 0.12;
+    zonePillar.material = mat(zoneColor, 0.45);
+    zone.position.x += (view.zone.x - zone.position.x) * 0.14;
+    zone.position.z += (view.zone.z - zone.position.z) * 0.14;
     zoneCore.position.x = zone.position.x;
     zoneCore.position.z = zone.position.z;
+    zonePillar.position.x = zone.position.x;
+    zonePillar.position.z = zone.position.z;
   }
 
   engine.runRenderLoop(() => {
@@ -161,13 +208,17 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
     }
     camera.position.copyFrom(predicted);
     camera.rotation.set(pitch, yaw, 0);
+    const targetFov = aiming ? Math.PI / 2.75 : Math.PI / 2.25;
+    camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
     zone.rotation.z += 0.006;
     zoneCore.rotation.y -= 0.003;
+    zonePillar.scaling.y = 0.88 + Math.sin(now * 0.002) * 0.08;
     flash = Math.max(0, flash - dt * 8);
     recoil = Math.max(0, recoil - dt * 10);
     weapon.scaling.z = 1 + flash * 0.18;
     weapon.position.z = 1.05 - recoil * 0.055;
-    weaponGlow.scaling.z = 1 + flash * 0.3;
+    weapon.position.y = -0.38 + recoil * 0.025;
+    weaponCore.scaling.z = 1 + flash * 0.3;
     scene.render();
   });
 
@@ -183,11 +234,13 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
     setWeapon(next) {
       const color = next === "scatter" ? "#ff9a57" : next === "rail" ? "#74ffbd" : "#7f6cff";
       weapon.material = mat(color, 0.3);
-      weaponGlow.material = mat(color, 0.9);
+      weaponCore.material = mat(color, 0.9);
+      weaponSight.material = mat(next === "rail" ? "#74ffbd" : "#eef4ff", 0.8);
     },
     setHero(_hero) {},
     getAim() { return { yaw, pitch }; },
     setInput(x, z, nextSprint) { inputX = x; inputZ = z; sprint = nextSprint; },
+    setAimMode(active) { aiming = active; },
     dispose() {
       window.removeEventListener("resize", resize);
       for (const mesh of remotes.values()) mesh.dispose();
