@@ -17,6 +17,13 @@ export const ARENA_HEROES = {
   medic: { maxHp: 105, speed: 8.8, abilityCooldown: 7500 },
 } as const;
 
+export const ARENA_CARDS = {
+  overclock: { label: "Overclock", detail: "12% faster fire cycle", fireRate: 0.88 },
+  bulwark: { label: "Bulwark", detail: "+25 maximum HP", maxHp: 25 },
+  ghoststep: { label: "Ghoststep", detail: "+10% movement speed", speed: 1.1 },
+  sharpshot: { label: "Sharpshot", detail: "+10% weapon damage", damage: 1.1 },
+} as const;
+
 export const ARENA_LIMITS = {
   minPlayers: 2,
   maxPlayers: 10,
@@ -28,4 +35,5 @@ export const ARENA_LIMITS = {
   zoneCycleMs: 60000,
   capturePerSecond: 12,
   scoreToWin: 100,
+  cardChoices: 3,
 } as const;
