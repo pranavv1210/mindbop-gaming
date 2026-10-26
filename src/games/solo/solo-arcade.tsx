@@ -214,8 +214,6 @@ function randomCell(excluded: Set<number> = new Set()) {
   );
   if (available.length === 0) return Math.floor(Math.random() * TONES.length);
 
-  // Prefer the browser's cryptographic RNG when available so consecutive
-  // games are not driven by one predictable sequence.
   if (typeof window !== "undefined" && window.crypto?.getRandomValues) {
     const values = new Uint32Array(1);
     window.crypto.getRandomValues(values);
@@ -224,10 +222,10 @@ function randomCell(excluded: Set<number> = new Set()) {
   return available[Math.floor(Math.random() * available.length)];
 }
 
-function createEchoSequence(length: number) {
+function createEchoSequence(length: number, prefix: number[] = []) {
   const safeLength = Math.max(1, Math.min(length, TONES.length));
-  const sequence: number[] = [];
-  const used = new Set<number>();
+  const sequence = [...prefix];
+  const used = new Set(sequence);
 
   while (sequence.length < safeLength) {
     const cell = randomCell(used);
@@ -247,7 +245,8 @@ function EchoGrid() {
     [entered, setEntered] = useState<number[]>([]),
     [active, setActive] = useState<number | null>(null),
     [strikes, setStrikes] = useState(0),
-    [muted, setMuted] = useState(false);
+    [muted, setMuted] = useState(false),
+    [mistake, setMistake] = useState(false);
   const timers = useRef<number[]>([]);
   const [best, saveBest] = useBest("mindbop_echo_best");
 
@@ -257,22 +256,23 @@ function EchoGrid() {
   }, []);
 
   const tone = useCallback(
-    (index: number) => {
+    (index: number, success = false) => {
       if (muted) return;
       const AudioCtx =
         window.AudioContext ||
         (window as typeof window & { webkitAudioContext: typeof AudioContext })
           .webkitAudioContext;
-      const context = new AudioCtx(),
-        osc = context.createOscillator(),
-        gain = context.createGain();
-      osc.frequency.value = 220 + index * 34;
-      gain.gain.setValueAtTime(0.08, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.18);
+      const context = new AudioCtx();
+      const osc = context.createOscillator();
+      const gain = context.createGain();
+      osc.type = success ? "sine" : "triangle";
+      osc.frequency.value = success ? 360 + index * 24 : 220 + index * 34;
+      gain.gain.setValueAtTime(0.07, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.2);
       osc.connect(gain).connect(context.destination);
       osc.start();
-      osc.stop(context.currentTime + 0.18);
-      window.setTimeout(() => void context.close(), 220);
+      osc.stop(context.currentTime + 0.2);
+      window.setTimeout(() => void context.close(), 250);
     },
     [muted],
   );
@@ -283,6 +283,7 @@ function EchoGrid() {
       setPhase("show");
       setEntered([]);
       setActive(null);
+      setMistake(false);
 
       const step = Math.max(330, 520 - Math.max(0, next.length - 4) * 12);
       const flash = Math.max(190, step * 0.58);
@@ -323,6 +324,9 @@ function EchoGrid() {
     setStrikes(0);
     setEntered([]);
     setActive(null);
+    setMistake(false);
+    // A new game gets a completely new trail. Once the game starts, that
+    // trail remains the same and grows by one new cell after each success.
     const next = createEchoSequence(1);
     setSequence(next);
     show(next);
@@ -341,20 +345,19 @@ function EchoGrid() {
       const failures = strikes + 1;
       setStrikes(failures);
       setEntered([]);
+      setMistake(true);
+      timers.current.push(window.setTimeout(() => setMistake(false), 360));
 
       if (failures >= 3) {
         clearTimers();
-        saveBest(Math.max(0, level - 1));
+        saveBest(level);
         setPhase("over");
         return;
       }
 
-      // A failed attempt gets a fresh sequence at the same level. This keeps
-      // every replay unpredictable instead of making the player memorize one
-      // permanent path.
-      const retry = createEchoSequence(level);
-      setSequence(retry);
-      window.setTimeout(() => show(retry), 300);
+      // A mistake costs a strike, but the player must memorize the SAME trail
+      // again. The sequence only changes when the entire game is lost/restarted.
+      timers.current.push(window.setTimeout(() => show(sequence), 520));
       return;
     }
 
@@ -363,78 +366,132 @@ function EchoGrid() {
       const newLevel = level + 1;
       setLevel(newLevel);
       saveBest(newLevel);
-      const expanded = createEchoSequence(Math.min(newLevel, TONES.length));
+      tone(cell, true);
+
+      // Preserve the exact previous trail and append one new random cell.
+      // This is the core Echo Grid mechanic: the trail grows; it does not
+      // reshuffle during a single game.
+      const expanded = createEchoSequence(
+        Math.min(newLevel, TONES.length),
+        sequence,
+      );
       setSequence(expanded);
-      window.setTimeout(() => show(expanded), 650);
+      timers.current.push(window.setTimeout(() => show(expanded), 650));
     }
   }
 
   return (
-    <div className="echo-world">
+    <div className="echo-world echo-world-premium">
       <Header title="Echo Grid" score={level} best={best} />
-      <section className="echo-stage">
-        <div className="echo-status">
-          <span>
-            {phase === "show"
-              ? "Observe"
-              : phase === "input"
-                ? `Your turn · ${entered.length}/${sequence.length}`
-                : "Neural link idle"}
-          </span>
-          <strong>Level {level}</strong>
+      <section className={`echo-stage echo-stage-premium ${mistake ? "echo-mistake" : ""}`}>
+        <div className="echo-aurora echo-aurora-one" />
+        <div className="echo-aurora echo-aurora-two" />
+        <div className="echo-stars" aria-hidden="true" />
+        <div className="echo-scanline" aria-hidden="true" />
+
+        <div className="echo-status echo-status-premium">
+          <div className="echo-status-copy">
+            <span className="echo-live-dot" />
+            <div>
+              <small>
+                {phase === "show"
+                  ? "MEMORIZE THE TRAIL"
+                  : phase === "input"
+                    ? "REBUILD THE TRAIL"
+                    : "NEURAL MEMORY TEST"}
+              </small>
+              <strong>
+                {phase === "show"
+                  ? "Watch every pulse"
+                  : phase === "input"
+                    ? `${entered.length} / ${sequence.length} pulses locked`
+                    : "Echo Grid"}
+              </strong>
+            </div>
+          </div>
+          <div className="echo-level-chip">
+            <span>LEVEL</span>
+            <strong>{String(level).padStart(2, "0")}</strong>
+          </div>
           <button
+            className="echo-sound-button"
             onClick={() => setMuted((value) => !value)}
             aria-label={muted ? "Turn sound on" : "Mute sound"}
           >
             {muted ? <VolumeX /> : <Volume2 />}
           </button>
         </div>
-        <div
-          className="echo-board"
-          style={{
-            width: "min(78vw, 680px)",
-            height: "min(78vw, 680px)",
-            maxWidth: "calc(100vw - 32px)",
-            maxHeight: "calc(100vh - 210px)",
-          }}
-        >
-          {TONES.map((color, index) => (
-            <button
-              key={index}
-              style={{ "--cell": color } as React.CSSProperties}
-              className={active === index ? "active" : ""}
-              disabled={phase !== "input"}
-              onClick={() => press(index)}
-              aria-label={`Pulse ${index + 1}`}
+
+        <div className="echo-game-frame">
+          <div className="echo-frame-corner corner-tl" />
+          <div className="echo-frame-corner corner-tr" />
+          <div className="echo-frame-corner corner-bl" />
+          <div className="echo-frame-corner corner-br" />
+          <div className="echo-board-wrap">
+            <div
+              className="echo-board echo-board-premium"
+              style={{
+                width: "min(78vw, 680px)",
+                height: "min(78vw, 680px)",
+                maxWidth: "calc(100vw - 32px)",
+                maxHeight: "calc(100vh - 210px)",
+              }}
             >
-              <i />
-            </button>
-          ))}
+              {TONES.map((color, index) => (
+                <button
+                  key={index}
+                  style={{ "--cell": color } as React.CSSProperties}
+                  className={active === index ? "active" : ""}
+                  disabled={phase !== "input"}
+                  onClick={() => press(index)}
+                  aria-label={`Pulse ${index + 1}`}
+                >
+                  <i />
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="echo-strikes">
-          Integrity{" "}
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={i < strikes ? "lost" : ""} />
-          ))}
-        </div>
-        {(phase === "idle" || phase === "over") && (
-          <div className="solo-overlay">
+
+        <div className="echo-bottom-hud">
+          <div className="echo-integrity">
+            <span>INTEGRITY</span>
+            <div>
+              {[0, 1, 2].map((i) => (
+                <i key={i} className={i < strikes ? "lost" : ""} />
+              ))}
+            </div>
+          </div>
+          <div className="echo-rule">
             <Sparkles />
+            <span>
+              <b>One trail.</b> It grows until you break it.
+            </span>
+          </div>
+          <div className="echo-best-chip">
+            <small>BEST</small>
+            <strong>{String(best).padStart(2, "0")}</strong>
+          </div>
+        </div>
+
+        {(phase === "idle" || phase === "over") && (
+          <div className="solo-overlay echo-overlay-premium">
+            <div className="echo-overlay-orb"><Sparkles /></div>
             <small>
-              {phase === "over" ? "Neural link severed" : "Memory trial"}
+              {phase === "over" ? "NEURAL LINK SEVERED" : "MINDBOP MEMORY LAB"}
             </small>
             <h1>
-              {phase === "over"
-                ? `Level ${level} reached`
-                : "Trust your memory."}
+              {phase === "over" ? `LEVEL ${level}` : "Echo the impossible."}
             </h1>
             <p>
-              Watch the pulse sequence, then repeat it exactly. Every round is
-              freshly randomized. Three failures end the link.
+              Watch the trail. Rebuild it in the exact same order. Every new
+              game starts with a different trail — but once you begin, the trail
+              stays locked and grows one pulse at a time.
             </p>
             <button onClick={start}>
               {phase === "over" ? <RotateCcw /> : <Play />}
-              {phase === "over" ? "Reconnect" : "Enter the grid"}
+              {phase === "over" ? "New neural run" : "Enter the grid"}
             </button>
           </div>
         )}
