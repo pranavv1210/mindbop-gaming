@@ -48,3 +48,30 @@ test("Arena hero abilities change authoritative state", () => {
   mindbopArena.act(state, "bravo", { type: "ability" }, now);
   assert.ok(state.players.bravo.shieldUntil > now);
 });
+
+test("Arena awards private skill-card choices after a completed capture", () => {
+  let now = 30_000;
+  const state = mindbopArena.create(["alpha", "bravo"], now);
+  state.players.alpha.x = state.zone.x;
+  state.players.alpha.z = state.zone.z;
+  state.players.bravo.x = 15;
+  state.players.bravo.z = 15;
+  for (let index = 0; index < 10; index++) { now += 1000; mindbopArena.tick(state, ["alpha", "bravo"], now); }
+  assert.ok(state.scores.ember >= 10 || state.scores.azure >= 10);
+  const teamPlayer = state.players.alpha;
+  assert.equal(teamPlayer.pendingCards.length, 3);
+  const selected = teamPlayer.pendingCards[0];
+  mindbopArena.act(state, "alpha", { type: "card", card: selected }, now);
+  assert.ok(teamPlayer.cards.includes(selected));
+  assert.equal(teamPlayer.pendingCards.length, 0);
+});
+
+test("Arena resolves solid-map collision without allowing players through cover", () => {
+  let now = 40_000;
+  const state = mindbopArena.create(["alpha", "bravo"], now);
+  state.players.alpha.x = -13;
+  state.players.alpha.z = 0;
+  mindbopArena.input?.(state, "alpha", 1, 0, now, false, false);
+  for (let index = 0; index < 100; index++) { now += 16.67; mindbopArena.tick(state, ["alpha", "bravo"], now); }
+  assert.ok(state.players.alpha.x < -10.5);
+});
