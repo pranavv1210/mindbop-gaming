@@ -4,11 +4,20 @@ export const ARENA_MAPS = [
   { id: "reactor", name: "Reactor Core", zoneSpots: [[0, 0], [7, 9], [-9, -6], [8, -8]] as const },
 ] as const;
 
-export const ARENA_WEAPONS = {
+type ArenaWeaponConfig = {
+  damage: number;
+  cooldown: number;
+  range: number;
+  spread: number;
+  pellets: number;
+  headshot: number;
+};
+
+export const ARENA_WEAPONS: Record<"pulse" | "scatter" | "rail", ArenaWeaponConfig> = {
   pulse: { damage: 20, cooldown: 140, range: 55, spread: 0.035, pellets: 1, headshot: 1.45 },
   scatter: { damage: 11, cooldown: 560, range: 24, spread: 0.19, pellets: 7, headshot: 1.25 },
   rail: { damage: 68, cooldown: 950, range: 90, spread: 0.006, pellets: 1, headshot: 1.8 },
-} as const;
+};
 
 export const ARENA_HEROES = {
   striker: { maxHp: 100, speed: 9.5, abilityCooldown: 7000 },
