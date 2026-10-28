@@ -35,7 +35,7 @@ export function ArenaGame({ room, leave }: { room: RoomView<ArenaView>; leave: (
   const keys = useRef(new Set<string>());
   const touchVector = useRef({ x: 0, z: 0 });
   const touchOrigin = useRef<{ x: number; y: number } | null>(null);
-  const serverOffset = useRef(room.serverTime - Date.now());
+  const serverOffset = useRef(0);
   const [locked, setLocked] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [weapon, setWeapon] = useState<ArenaWeapon>("pulse");

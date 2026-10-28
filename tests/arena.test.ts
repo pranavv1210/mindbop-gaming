@@ -38,7 +38,7 @@ test("Arena validates weapons server-side and registers a lag-compensated hit", 
 });
 
 test("Arena hero abilities change authoritative state", () => {
-  let now = 20_000;
+  const now = 20_000;
   const state = mindbopArena.create(["alpha", "bravo"], now);
   state.players.alpha.hero = "striker";
   const before = state.players.alpha.x;
@@ -56,7 +56,7 @@ test("Arena awards private skill-card choices after a completed capture", () => 
   state.players.alpha.z = state.zone.z;
   state.players.bravo.x = 15;
   state.players.bravo.z = 15;
-  for (let index = 0; index < 10; index++) { now += 1000; mindbopArena.tick(state, ["alpha", "bravo"], now); }
+  for (let index = 0; index < 200; index++) { now += 50; mindbopArena.tick(state, ["alpha", "bravo"], now); }
   assert.ok(state.scores.ember >= 10 || state.scores.azure >= 10);
   const teamPlayer = state.players.alpha;
   assert.equal(teamPlayer.pendingCards.length, 3);
@@ -69,6 +69,7 @@ test("Arena awards private skill-card choices after a completed capture", () => 
 test("Arena resolves solid-map collision without allowing players through cover", () => {
   let now = 40_000;
   const state = mindbopArena.create(["alpha", "bravo"], now);
+  state.mapId = "neon-yard";
   state.players.alpha.x = -13;
   state.players.alpha.z = 0;
   mindbopArena.input?.(state, "alpha", 1, 0, now, false, false);
