@@ -5,11 +5,12 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 import type { ArenaMapId, ArenaView, ArenaWeapon } from "./types";
 
 export type ArenaScene = {
@@ -26,10 +27,12 @@ export type ArenaScene = {
   dispose: () => void;
 };
 
-const MAP_THEME: Record<ArenaMapId, { accent: string; secondary: string; floor: string }> = {
-  "neon-yard": { accent: "#42e8ff", secondary: "#7f6cff", floor: "#101a36" },
-  skyline: { accent: "#74ffbd", secondary: "#42a5ff", floor: "#101d34" },
-  reactor: { accent: "#ff9a57", secondary: "#ff5e87", floor: "#241526" },
+type Theme = { accent: string; secondary: string; floor: string; wall: string; glow: string };
+
+const MAP_THEME: Record<ArenaMapId, Theme> = {
+  "neon-yard": { accent: "#42e8ff", secondary: "#7f6cff", floor: "#101a36", wall: "#172650", glow: "#42e8ff" },
+  skyline: { accent: "#74ffbd", secondary: "#42a5ff", floor: "#101d34", wall: "#183552", glow: "#74ffbd" },
+  reactor: { accent: "#ff9a57", secondary: "#ff5e87", floor: "#241526", wall: "#3b1d35", glow: "#ff9a57" },
 };
 
 export function createArenaScene(canvas: HTMLCanvasElement, localId: string): ArenaScene {
@@ -39,11 +42,12 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
   const lowPower = quality === "low" || (quality === "auto" && mobile);
   const highQuality = quality === "high" || quality === "ultra";
   engine.setHardwareScalingLevel(quality === "low" ? 1.55 : mobile ? 1.32 : highQuality ? 0.9 : innerWidth * innerHeight > 2_000_000 ? 1.04 : 1);
+
   const scene = new Scene(engine);
-  scene.clearColor = new Color4(0.008, 0.012, 0.035, 1);
+  scene.clearColor = new Color4(0.006, 0.009, 0.025, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = lowPower ? 0.013 : 0.007;
-  scene.fogColor = new Color3(0.015, 0.025, 0.07);
+  scene.fogDensity = lowPower ? 0.014 : 0.0065;
+  scene.fogColor = new Color3(0.015, 0.025, 0.065);
 
   const camera = new UniversalCamera("arena-camera", new Vector3(0, 2.6, -8), scene);
   camera.minZ = 0.06;
@@ -52,14 +56,15 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
   let sensitivity = Number(localStorage.getItem("mindbop-arena-sensitivity") ?? "1");
 
   const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
-  ambient.intensity = 0.72;
-  ambient.diffuse = new Color3(0.48, 0.55, 1);
-  ambient.groundColor = new Color3(0.025, 0.035, 0.09);
+  ambient.intensity = 0.64;
+  ambient.diffuse = new Color3(0.5, 0.58, 1);
+  ambient.groundColor = new Color3(0.02, 0.025, 0.07);
   const sun = new DirectionalLight("key", new Vector3(-0.45, -1, 0.35), scene);
-  sun.intensity = 1.15;
+  sun.intensity = 1.35;
   sun.diffuse = new Color3(0.84, 0.91, 1);
+
   const glow = new GlowLayer("arena-glow", scene);
-  glow.intensity = lowPower ? 0.32 : highQuality ? 0.92 : 0.62;
+  glow.intensity = lowPower ? 0.3 : highQuality ? 0.85 : 0.58;
   glow.blurKernelSize = highQuality ? 48 : 32;
 
   const materials = new Map<string, StandardMaterial>();
@@ -71,12 +76,13 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
       m.diffuseColor = Color3.FromHexString(hex);
       m.emissiveColor = m.diffuseColor.scale(emissive);
       m.specularColor = new Color3(metallic, metallic, metallic);
-      m.specularPower = 64;
+      m.specularPower = 72;
       m.freeze();
       materials.set(key, m);
     }
     return m;
   };
+
   const box = (name: string, p: Vector3, size: Vector3, color: string, emissive = 0.05) => {
     const mesh = MeshBuilder.CreateBox(name, { width: size.x, height: size.y, depth: size.z }, scene);
     mesh.position.copyFrom(p);
@@ -89,46 +95,115 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
     mesh.material = mat(color, emissive);
     return mesh;
   };
-
-  const floor = box("arena-floor", new Vector3(0, -0.3, 0), new Vector3(42, 0.6, 42), MAP_THEME["neon-yard"].floor, 0.02);
-  floor.material = mat(MAP_THEME["neon-yard"].floor, 0.02, 0.7);
-  box("floor-inlay", new Vector3(0, 0.025, 0), new Vector3(38, 0.08, 38), "#162344", 0.08);
-  for (let i = -18; i <= 18; i += 6) {
-    box("lane-x", new Vector3(i, 0.075, 0), new Vector3(0.035, 0.025, 36), "#30457b", 0.2);
-    box("lane-z", new Vector3(0, 0.078, i), new Vector3(36, 0.025, 0.035), "#30457b", 0.2);
-  }
-  box("north-wall", new Vector3(0, 2.5, 19.4), new Vector3(40, 5, 1), "#1a2b52");
-  box("south-wall", new Vector3(0, 2.5, -19.4), new Vector3(40, 5, 1), "#1a2b52");
-  box("east-wall", new Vector3(19.4, 2.5, 0), new Vector3(1, 5, 40), "#1a2b52");
-  box("west-wall", new Vector3(-19.4, 2.5, 0), new Vector3(1, 5, 40), "#1a2b52");
-
-  const coverLayout = [[-9, 0, 3.8, 1.2, 2.8], [9, 0, 3.8, 1.2, 2.8], [0, -8, 8, 1.2, 2.3], [0, 8, 8, 1.2, 2.3], [-5, -5, 2.8, 2.8, 2.2], [5, 5, 2.8, 2.8, 2.2], [-13, 7, 2.2, 4.6, 2.8], [13, -7, 2.2, 4.6, 2.8]] as const;
-  for (const [x, z, w, d, h] of coverLayout) {
-    box("cover", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#213761", 0.03);
-    if (!lowPower) box("cover-strip", new Vector3(x, h - 0.05, z), new Vector3(w * 0.88, 0.08, d * 0.88), "#395994", 0.12);
-  }
-  const mapVariants: Record<Exclude<ArenaMapId, "neon-yard">, Mesh[]> = { skyline: [], reactor: [] };
-  const addVariant = (id: Exclude<ArenaMapId, "neon-yard">, x: number, z: number, w: number, d: number, h: number, color = "#22395f") => {
-    const m = box(`${id}-cover`, new Vector3(x, h / 2, z), new Vector3(w, h, d), color, 0.03);
-    mapVariants[id].push(m);
-    if (!lowPower) mapVariants[id].push(box(`${id}-edge`, new Vector3(x, h - 0.05, z), new Vector3(w * 0.9, 0.08, d * 0.9), "#4b6ea6", 0.1));
+  const sphere = (name: string, p: Vector3, diameter: number, color: string, emissive = 0.05) => {
+    const mesh = MeshBuilder.CreateSphere(name, { diameter, segments: lowPower ? 8 : 16 }, scene);
+    mesh.position.copyFrom(p);
+    mesh.material = mat(color, emissive);
+    return mesh;
   };
-  addVariant("skyline", -11, -8, 2.5, 7, 3.4); addVariant("skyline", 11, 8, 2.5, 7, 3.4); addVariant("skyline", 0, 0, 3.2, 3.2, 3.8); addVariant("skyline", -3, 13, 7, 1.8, 2.1);
-  addVariant("reactor", -7, -10, 7, 2.2, 3.2); addVariant("reactor", 7, 10, 7, 2.2, 3.2); addVariant("reactor", 0, 0, 2.4, 7, 2.8); addVariant("reactor", 0, 13, 9, 1.5, 2.0);
-  if (!lowPower) {
-    box("platform-a", new Vector3(-12, 0.45, -11), new Vector3(6, 0.9, 4), "#1c3159");
-    box("platform-b", new Vector3(12, 0.45, 11), new Vector3(6, 0.9, 4), "#1c3159");
-    box("platform-c", new Vector3(-12, 0.33, 11), new Vector3(4, 0.65, 6), "#1c3159");
-    box("platform-d", new Vector3(12, 0.33, -11), new Vector3(4, 0.65, 6), "#1c3159");
+
+  const mapRoot = new TransformNode("map-root", scene);
+  const mapGroups: Record<ArenaMapId, Mesh[]> = { "neon-yard": [], skyline: [], reactor: [] };
+  const mapLights: Record<ArenaMapId, PointLight[]> = { "neon-yard": [], skyline: [], reactor: [] };
+  const add = (map: ArenaMapId, mesh: Mesh) => { mesh.parent = mapRoot; mapGroups[map].push(mesh); return mesh; };
+  const addLight = (map: ArenaMapId, light: PointLight) => { light.parent = mapRoot; mapLights[map].push(light); return light; };
+
+  const makeWall = (map: ArenaMapId, name: string, p: Vector3, size: Vector3) => add(map, box(`${map}-${name}`, p, size, MAP_THEME[map].wall, 0.025));
+  const makeLight = (map: ArenaMapId, p: Vector3, color: string, intensity = 1.5) => {
+    const light = new PointLight(`${map}-light-${mapLights[map].length}`, p, scene);
+    light.diffuse = Color3.FromHexString(color);
+    light.specular = light.diffuse;
+    light.intensity = lowPower ? intensity * 0.45 : intensity;
+    light.range = lowPower ? 9 : 13;
+    return addLight(map, light);
+  };
+
+  // Shared arena shell: deliberately architectural rather than a flat box-and-grid prototype.
+  for (const map of Object.keys(MAP_THEME) as ArenaMapId[]) {
+    const theme = MAP_THEME[map];
+    add(map, box(`${map}-floor`, new Vector3(0, -0.32, 0), new Vector3(42, 0.64, 42), theme.floor, 0.025));
+    add(map, box(`${map}-floor-panel`, new Vector3(0, 0.02, 0), new Vector3(38, 0.08, 38), "#15223f", 0.06));
+    makeWall(map, "north", new Vector3(0, 2.6, 19.5), new Vector3(40, 5.2, 1));
+    makeWall(map, "south", new Vector3(0, 2.6, -19.5), new Vector3(40, 5.2, 1));
+    makeWall(map, "east", new Vector3(19.5, 2.6, 0), new Vector3(1, 5.2, 40));
+    makeWall(map, "west", new Vector3(-19.5, 2.6, 0), new Vector3(1, 5.2, 40));
+
+    for (let i = -18; i <= 18; i += 6) {
+      add(map, box(`${map}-lane-x-${i}`, new Vector3(i, 0.075, 0), new Vector3(0.025, 0.025, 36), theme.secondary, 0.16));
+      add(map, box(`${map}-lane-z-${i}`, new Vector3(0, 0.078, i), new Vector3(36, 0.025, 0.025), theme.secondary, 0.16));
+    }
+    for (const [x, z] of [[-15, -15], [15, -15], [-15, 15], [15, 15]]) {
+      add(map, box(`${map}-light-strip-${x}-${z}`, new Vector3(x, 0.16, z), new Vector3(2.6, 0.06, 0.08), theme.accent, 0.7));
+      makeLight(map, new Vector3(x, 2.4, z), theme.accent, 1.15);
+    }
   }
 
-  const beaconSpots = [[-16, -16], [16, -16], [-16, 16], [16, 16]] as const;
+  // NEON YARD — asymmetric lanes, central plaza, flank routes, elevated corners.
+  const ny = MAP_THEME["neon-yard"];
+  const nyCovers: [number, number, number, number, number][] = [
+    [-10, -1, 3.2, 6.4, 2.8], [10, 1, 3.2, 6.4, 2.8],
+    [-4, 8, 5.8, 1.6, 2.2], [4, -8, 5.8, 1.6, 2.2],
+    [-12, 10, 2.2, 3.8, 3.4], [12, -10, 2.2, 3.8, 3.4],
+    [-5, -5, 2.5, 2.5, 2.0], [5, 5, 2.5, 2.5, 2.0],
+  ];
+  for (const [x, z, w, d, h] of nyCovers) {
+    add("neon-yard", box("ny-cover", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#20365d", 0.035));
+    add("neon-yard", box("ny-edge", new Vector3(x, h - 0.06, z), new Vector3(w * 0.86, 0.09, d * 0.86), ny.accent, 0.24));
+  }
+  for (const [x, z] of [[-13, -13], [13, -13], [-13, 13], [13, 13]]) {
+    add("neon-yard", cylinder("ny-tower", new Vector3(x, 2.4, z), 1.15, 4.8, "#192b50", 0.06, 12));
+    add("neon-yard", cylinder("ny-tower-core", new Vector3(x, 2.4, z), 0.28, 4.95, ny.accent, 0.82, 10));
+  }
+  for (const [x, z, rot] of [[0, -15, 0], [0, 15, 0], [-15, 0, Math.PI / 2], [15, 0, Math.PI / 2]]) {
+    const gate = add("neon-yard", box("ny-gate", new Vector3(x, 3.3, z), new Vector3(rot ? 6.8 : 2.2, 6.6, rot ? 2.2 : 6.8), "#1b3159", 0.04));
+    gate.rotation.y = rot;
+    add("neon-yard", box("ny-gate-light", new Vector3(x, 5.8, z), new Vector3(rot ? 5.8 : 0.12, 0.12, rot ? 0.12 : 5.8), ny.accent, 0.62));
+  }
+
+  // SKYLINE — rooftop arena with tall cover, catwalks and a central tower.
+  const sky = MAP_THEME.skyline;
+  for (const [x, z, w, d, h] of [
+    [-11, -8, 3, 7, 3.8], [11, 8, 3, 7, 3.8], [-4, 12, 7, 2, 2.2], [4, -12, 7, 2, 2.2],
+    [-12, 9, 2.2, 3, 4.6], [12, -9, 2.2, 3, 4.6],
+  ] as const) {
+    add("skyline", box("sky-block", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#203a5e", 0.035));
+    add("skyline", box("sky-cap", new Vector3(x, h - 0.06, z), new Vector3(w * 0.84, 0.09, d * 0.84), sky.accent, 0.3));
+  }
+  for (const [x, z] of [[-7, 0], [7, 0]]) {
+    add("skyline", box("sky-catwalk", new Vector3(x, 2.0, z), new Vector3(3.8, 0.3, 10), "#29496f", 0.04));
+    add("skyline", box("sky-rail-a", new Vector3(x - 1.8, 2.55, z), new Vector3(0.08, 1.0, 10), sky.accent, 0.28));
+    add("skyline", box("sky-rail-b", new Vector3(x + 1.8, 2.55, z), new Vector3(0.08, 1.0, 10), sky.accent, 0.28));
+  }
+  add("skyline", box("sky-tower", new Vector3(0, 3.2, 0), new Vector3(3.8, 6.4, 3.8), "#172f52", 0.06));
+  add("skyline", box("sky-tower-window", new Vector3(0, 4.0, -1.94), new Vector3(2.4, 1.6, 0.06), sky.secondary, 0.7));
+  add("skyline", box("sky-bridge", new Vector3(0, 1.55, 7), new Vector3(8.5, 0.22, 2.1), "#2b4c72", 0.05));
+
+  // REACTOR — industrial power facility with tanks, pipes, barriers and a hot central core.
+  const reactor = MAP_THEME.reactor;
+  for (const [x, z, w, d, h] of [
+    [-8, -10, 7, 2.4, 3.5], [8, 10, 7, 2.4, 3.5], [-12, 5, 2.4, 6.5, 3], [12, -5, 2.4, 6.5, 3],
+    [-5, 5, 3.0, 3.0, 2.6], [5, -5, 3.0, 3.0, 2.6],
+  ] as const) {
+    add("reactor", box("reactor-barrier", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#3a263d", 0.04));
+    add("reactor", box("reactor-edge", new Vector3(x, h - 0.06, z), new Vector3(w * 0.88, 0.1, d * 0.88), reactor.accent, 0.32));
+  }
+  for (const [x, z] of [[-7, 6], [7, -6], [-7, -6], [7, 6]]) {
+    add("reactor", cylinder("reactor-tank", new Vector3(x, 2.5, z), 3.0, 5.0, "#462c40", 0.04, 20));
+    add("reactor", cylinder("reactor-tank-core", new Vector3(x, 2.5, z), 2.15, 5.1, reactor.accent, 0.16, 20));
+    add("reactor", cylinder("reactor-tank-ring", new Vector3(x, 4.4, z), 3.15, 0.12, reactor.secondary, 0.75, 24));
+  }
+  add("reactor", cylinder("reactor-core", new Vector3(0, 2.8, 0), 2.8, 5.6, "#301d35", 0.08, 24));
+  add("reactor", cylinder("reactor-core-light", new Vector3(0, 2.8, 0), 1.65, 5.75, reactor.accent, 0.8, 20));
+  for (const z of [-12, -4, 4, 12]) {
+    add("reactor", cylinder("reactor-pipe", new Vector3(0, 4.4, z), 0.22, 5.8, reactor.secondary, 0.62, 12));
+  }
+
   const beacons: { pillar: Mesh; cap: Mesh }[] = [];
+  const beaconSpots = [[-16, -16], [16, -16], [-16, 16], [16, 16]] as const;
   for (const [x, z] of beaconSpots) {
-    const pillar = box("beacon", new Vector3(x, 2.8, z), new Vector3(0.72, 5.6, 0.72), MAP_THEME["neon-yard"].accent, 0.72);
-    const cap = box("beacon-cap", new Vector3(x, 5.72, z), new Vector3(1.5, 0.12, 1.5), MAP_THEME["neon-yard"].secondary, 0.82);
-    pillar.rotation.y = Math.PI / 4;
-    cap.rotation.y = Math.PI / 4;
+    const pillar = box("beacon", new Vector3(x, 2.8, z), new Vector3(0.72, 5.6, 0.72), ny.accent, 0.72);
+    const cap = box("beacon-cap", new Vector3(x, 5.72, z), new Vector3(1.5, 0.12, 1.5), ny.secondary, 0.82);
+    pillar.rotation.y = Math.PI / 4; cap.rotation.y = Math.PI / 4;
     beacons.push({ pillar, cap });
   }
 
@@ -138,6 +213,8 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
   zoneCore.position.y = 0.04; zoneCore.visibility = 0.28;
   const zonePillar = MeshBuilder.CreateCylinder("zone-beam", { diameter: 0.22, height: 6, tessellation: 12 }, scene);
   zonePillar.position.y = 3; zonePillar.visibility = 0.2;
+  const zoneHalo = MeshBuilder.CreateTorus("zone-halo", { diameter: 12, thickness: 0.045, tessellation: lowPower ? 24 : 48 }, scene);
+  zoneHalo.rotation.x = Math.PI / 2; zoneHalo.position.y = 0.12;
 
   const weaponRoot = new TransformNode("weapon-root", scene); weaponRoot.parent = camera;
   const weaponBody = box("weapon-body", new Vector3(0.46, -0.38, 1.05), new Vector3(0.28, 0.22, 0.88), "#7f6cff", 0.28); weaponBody.parent = weaponRoot;
@@ -146,12 +223,14 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
   const weaponCore = box("weapon-core", new Vector3(0.46, -0.38, 0.75), new Vector3(0.1, 0.07, 0.4), "#42e8ff", 0.95); weaponCore.parent = weaponRoot;
   const weaponSight = box("weapon-sight", new Vector3(0.46, -0.21, 0.68), new Vector3(0.055, 0.055, 0.26), "#eef4ff", 0.9); weaponSight.parent = weaponRoot;
   const hand = cylinder("weapon-hand", new Vector3(0.46, -0.55, 0.92), 0.18, 0.35, "#a56e56", 0.02, 12); hand.rotation.x = Math.PI / 2; hand.parent = weaponRoot;
+  const muzzle = sphere("weapon-muzzle", new Vector3(0.46, -0.38, 0.26), 0.16, "#ffffff", 1); muzzle.parent = weaponRoot; muzzle.visibility = 0;
 
   type Avatar = { root: Mesh; parts: Mesh[]; material: StandardMaterial };
   const remotes = new Map<string, Avatar>();
   let yaw = 0, pitch = 0, flash = 0, recoil = 0, inputX = 0, inputZ = 0, sprint = false, aiming = false;
   let lastFrame = performance.now();
-  const authoritative = new Vector3(0, 2.55, -8); const predicted = authoritative.clone();
+  const authoritative = new Vector3(0, 2.55, -8);
+  const predicted = authoritative.clone();
 
   const buildAvatar = (id: string, team: string): Avatar => {
     const root = MeshBuilder.CreateBox(`avatar-root-${id}`, { width: 0.01, height: 0.01, depth: 0.01 }, scene);
@@ -166,7 +245,6 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
     const shoulderR = box(`avatar-shoulder-r-${id}`, new Vector3(0.48, 1.18, 0), new Vector3(0.22, 0.3, 0.42), color, 0.18); shoulderR.parent = root; parts.push(shoulderR);
     const backpack = box(`avatar-pack-${id}`, new Vector3(0, 1.02, -0.36), new Vector3(0.45, 0.55, 0.16), "#1a2747", 0.08); backpack.parent = root; parts.push(backpack);
     const weapon = box(`avatar-weapon-${id}`, new Vector3(0.38, 1.1, 0.38), new Vector3(0.08, 0.08, 0.55), color, 0.65); weapon.parent = root; weapon.rotation.x = 0.12; parts.push(weapon);
-    remotes.set(id, { root, parts, material });
     return { root, parts, material };
   };
 
@@ -182,7 +260,9 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
     }
     for (const [id, avatar] of remotes) {
       const p = view.players[id];
-      if (!view.playerIds.includes(id) || !p || p.hp <= 0) { avatar.parts.forEach((part) => part.dispose()); avatar.root.dispose(); remotes.delete(id); }
+      if (!view.playerIds.includes(id) || !p || p.hp <= 0) {
+        avatar.parts.forEach((part) => part.dispose()); avatar.root.dispose(); remotes.delete(id);
+      }
     }
     for (const id of view.playerIds) {
       if (id === localId) continue;
@@ -197,25 +277,35 @@ export function createArenaScene(canvas: HTMLCanvasElement, localId: string): Ar
       avatar.root.rotation.y = p.rotation;
       avatar.root.scaling.y = p.shieldUntil > Date.now() ? 1.08 : 1;
     }
+
     const activeTheme = MAP_THEME[view.mapId];
-    for (const [id, meshes] of Object.entries(mapVariants)) for (const mesh of meshes) mesh.setEnabled(id === view.mapId);
+    for (const id of Object.keys(mapGroups) as ArenaMapId[]) {
+      const enabled = id === view.mapId;
+      mapGroups[id].forEach((mesh) => mesh.setEnabled(enabled));
+      mapLights[id].forEach((light) => { light.setEnabled(enabled); });
+    }
     for (const pair of beacons) { pair.pillar.material = mat(activeTheme.accent, 0.72); pair.cap.material = mat(activeTheme.secondary, 0.82); }
     const zoneColor = view.zone.owner === "ember" ? "#ff5e87" : view.zone.owner === "azure" ? "#42e8ff" : activeTheme.secondary;
-    zone.material = mat(zoneColor, 1); zoneCore.material = mat(zoneColor, 0.14); zonePillar.material = mat(zoneColor, 0.48);
+    zone.material = mat(zoneColor, 1); zoneCore.material = mat(zoneColor, 0.14); zonePillar.material = mat(zoneColor, 0.48); zoneHalo.material = mat(zoneColor, 0.72);
     zone.position.x += (view.zone.x - zone.position.x) * 0.14; zone.position.z += (view.zone.z - zone.position.z) * 0.14;
-    zoneCore.position.x = zone.position.x; zoneCore.position.z = zone.position.z; zonePillar.position.x = zone.position.x; zonePillar.position.z = zone.position.z;
+    zoneCore.position.x = zone.position.x; zoneCore.position.z = zone.position.z; zonePillar.position.x = zone.position.x; zonePillar.position.z = zone.position.z; zoneHalo.position.x = zone.position.x; zoneHalo.position.z = zone.position.z;
   }
 
   engine.runRenderLoop(() => {
     const now = performance.now(); const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
     const length = Math.hypot(inputX, inputZ);
-    if (length > 0) { const speed = sprint ? 11.5 : 9.5; predicted.x += (inputX / length) * speed * dt; predicted.z += (inputZ / length) * speed * dt; predicted.x = Math.max(-18, Math.min(18, predicted.x)); predicted.z = Math.max(-18, Math.min(18, predicted.z)); }
+    if (length > 0) {
+      const speed = sprint ? 11.5 : 9.5;
+      predicted.x += (inputX / length) * speed * dt;
+      predicted.z += (inputZ / length) * speed * dt;
+      predicted.x = Math.max(-18, Math.min(18, predicted.x)); predicted.z = Math.max(-18, Math.min(18, predicted.z));
+    }
     camera.position.copyFrom(predicted); camera.rotation.set(pitch, yaw, 0);
     const targetFov = aiming ? baseFov * 0.82 : baseFov; camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
-    zone.rotation.z += 0.006; zoneCore.rotation.y -= 0.003; zonePillar.scaling.y = 0.88 + Math.sin(now * 0.002) * 0.08;
+    zone.rotation.z += 0.006; zoneCore.rotation.y -= 0.003; zoneHalo.rotation.z -= 0.004; zonePillar.scaling.y = 0.88 + Math.sin(now * 0.002) * 0.08;
     flash = Math.max(0, flash - dt * 8); recoil = Math.max(0, recoil - dt * 10);
     weaponRoot.position.z = -recoil * 0.055; weaponRoot.position.y = recoil * 0.025; weaponRoot.rotation.x = recoil * 0.045;
-    weaponCore.scaling.z = 1 + flash * 0.35; weaponBarrel.scaling.z = 1 + flash * 0.2;
+    weaponCore.scaling.z = 1 + flash * 0.35; weaponBarrel.scaling.z = 1 + flash * 0.2; muzzle.visibility = flash > 0.04 ? 1 : 0; muzzle.scaling.setAll(0.7 + flash * 1.4);
     scene.render();
   });
 
