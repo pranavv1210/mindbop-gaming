@@ -22,7 +22,6 @@ import type { Command } from "@/lib/protocol";
 import { GameTutorial } from "@/components/game-tutorial";
 import { PostGameFeedback } from "@/components/post-game-feedback";
 import { GameFullscreen } from "@/components/game-fullscreen";
-import { ArenaGame } from "@/games/arena/arena-game";
 export default function RoomPage({
   params,
 }: {
@@ -155,13 +154,6 @@ export default function RoomPage({
                 "Lock one vote for the statement you think is false.",
                 "Correct guesses and convincing bluffs earn points.",
               ]
-            : room.gameId === "mindbop-arena"
-              ? [
-                  "Click the arena to lock the pointer; press Esc whenever you want to release it.",
-                  "Use WASD to move, Shift to sprint, Space to jump, and the mouse to look.",
-                  "Click to fire the Phase 1 pulse-rifle feedback at the training dummy.",
-                  "Movement is owned by the server and synchronized with every player in this room.",
-                ]
             : room.gameId === "mindbop-draw"
               ? [
                   "The artist picks one of three fresh words.",
@@ -514,8 +506,6 @@ export default function RoomPage({
                     : "Everyone’s ready. Your host can start the game."}
             </p>
           </section>
-        ) : room.game?.kind === "mindbop-arena" ? (
-          <ArenaGame room={room} leave={() => void act({ type: "leave" })} />
         ) : room.game?.kind === "comedy-chaos" ? (
           <ComedyGame
             key={room.game.runId}

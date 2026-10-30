@@ -7,7 +7,6 @@ import type { MafiaAction, MafiaView } from "../games/mafia/types";
 import type { TwoTruthsAction, TwoTruthsView } from "../games/two-truths/types";
 import type { SkyAction, SkyView } from "../games/sky-scramble/types";
 import type { ComedyAction, ComedySettings, ComedyView } from "../games/comedy-chaos/types";
-import type { ArenaAction, ArenaView } from "../games/arena/types";
 export type Player = {
   id: string;
   name: string;
@@ -16,7 +15,7 @@ export type Player = {
   ready: boolean;
 };
 export type GameView =
-  LastGuestView | FourRowView | WordChainView | QuizRushView | DrawView | MafiaView | TwoTruthsView | SkyView | ComedyView | ArenaView;
+  LastGuestView | FourRowView | WordChainView | QuizRushView | DrawView | MafiaView | TwoTruthsView | SkyView | ComedyView;
 export type RoomView<TGame extends GameView = LastGuestView> = {
   code: string;
   gameId: string;
@@ -39,7 +38,7 @@ export type Command =
   | {
       type: "game";
       action:
-        LastGuestAction | FourRowAction | WordChainAction | QuizRushAction | DrawAction | MafiaAction | TwoTruthsAction | SkyAction | ComedyAction | ArenaAction;
+        LastGuestAction | FourRowAction | WordChainAction | QuizRushAction | DrawAction | MafiaAction | TwoTruthsAction | SkyAction | ComedyAction;
     };
 export type Envelope = { id: string; command: Command };
 export type ServerEvents = {

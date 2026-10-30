@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
-    "test:load": "tsx scripts/load.ts"
+    "test:load": "tsx scripts/load.ts",
+    "test:arena-load": "tsx scripts/arena-load.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^9.27.1",

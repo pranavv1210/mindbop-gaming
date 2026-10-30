@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const gameRoutes = games
     .filter((game) => game.status === "playable")
     .map((game) => ({
-      path: game.mode === "solo" && game.route ? game.route : `/play/game/${game.id}`,
+      path: game.route && game.mode !== "multiplayer" ? game.route : `/play/game/${game.id}`,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     }));

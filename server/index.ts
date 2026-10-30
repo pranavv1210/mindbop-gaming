@@ -5,6 +5,7 @@ import { loadEnvConfig } from "@next/env";
 import { z } from "zod";
 import { Engine } from "./engine";
 import type { ClientEvents, ServerEvents } from "../src/lib/protocol";
+import { registerArena } from "./arena/net";
 
 loadEnvConfig(process.cwd());
 const dev = process.env.NODE_ENV !== "production";
@@ -141,6 +142,7 @@ function limited(key: string, count: number) {
   attempts.set(key, times);
   return times.length > count;
 }
+let arenaStats: () => unknown = () => null;
 async function main() {
   await restoreRooms();
   await app.prepare();
@@ -161,6 +163,7 @@ async function main() {
         connectedPlayers: [...engine.sessions.values()].filter(
           (s) => s.sockets.size,
         ).length,
+        arena: arenaStats(),
       });
     if (pathname === "/api/session" || pathname === "/api/feedback") {
       if (req.method === "POST" && req.headers.origin !== origin)
@@ -247,6 +250,15 @@ async function main() {
       return done(new Error("Session expired. Refresh to reconnect."));
     done();
   });
+  // MindBop Arena runs on its own namespace with its own tick loop and binary protocol,
+  // so a busy shooter never slows the party games above (and vice versa).
+  const arena = registerArena(io, (req) => {
+    const token = tokenFrom(req);
+    const session = token ? engine.sessions.get(token) : undefined;
+    if (session) session.lastSeen = Date.now();
+    return session ? { id: session.id } : undefined;
+  });
+  arenaStats = arena.stats;
   const last = new Map<string, string>();
   function broadcast() {
     for (const socket of io.sockets.sockets.values()) {
@@ -314,6 +326,7 @@ async function main() {
   const shutdown = () => {
     clearInterval(tick);
     clearInterval(cleanup);
+    arena.close();
     io.close();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(0), 3000).unref();

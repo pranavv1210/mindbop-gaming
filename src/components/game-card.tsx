@@ -14,7 +14,7 @@ export function GameCard({
   const router=useRouter();
   const activate = () => {
     if (game.status !== "playable") return;
-    if (game.mode === "solo" && game.route) router.push(game.route);
+    if (game.route && game.mode !== "multiplayer") router.push(game.route);
     else if (onPlay) onPlay();
     else router.push(`/play?game=${game.id}`);
   };
@@ -49,9 +49,9 @@ export function GameCard({
           </span>
         </div>
         {game.status === "playable" ? (
-          game.mode === "solo" && game.route ? (
+          game.route && game.mode !== "multiplayer" ? (
             <Link href={game.route} className="card-link" onClick={(event)=>event.stopPropagation()}>
-              Enter challenge <ArrowUpRight size={18} />
+              {game.mode === "arena" ? "Jump into the arena" : "Enter challenge"} <ArrowUpRight size={18} />
             </Link>
           ) : onPlay ? (
             <button className="card-link" onClick={(event)=>{event.stopPropagation();onPlay()}}>

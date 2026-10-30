@@ -5,322 +5,318 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
-import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
-import type { ArenaMapId, ArenaView, ArenaWeapon } from "./types";
+import { BODY_HEIGHT, EYE_HEIGHT } from "@/arena/config";
+import type { ArenaMap, Solid } from "@/arena/maps";
+
+export type RemoteRender = {
+  slot: number;
+  name: string;
+  team: 0 | 1;
+  x: number; y: number; z: number;
+  yaw: number; pitch: number;
+  alive: boolean;
+  cloaked: boolean;
+  shield: boolean;
+  protect: boolean;
+};
+
+export type SceneQuality = "auto" | "low" | "high" | "ultra";
 
 export type ArenaScene = {
-  update: (view: ArenaView) => void;
-  look: (dx: number, dy: number) => void;
-  fire: () => void;
-  setWeapon: (weapon: ArenaWeapon) => void;
-  setHero: (hero: string) => void;
-  setSensitivity: (value: number) => void;
-  setFov: (value: number) => void;
-  getAim: () => { yaw: number; pitch: number };
-  setInput: (x: number, z: number, sprint: boolean) => void;
-  setAimMode: (active: boolean) => void;
+  loadMap: (map: ArenaMap) => void;
+  setLocal: (x: number, y: number, z: number, yaw: number, pitch: number, fov: number) => void;
+  setRemotes: (remotes: RemoteRender[]) => void;
+  tracer: (from: [number, number, number], to: [number, number, number], team: 0 | 1, heavy: boolean) => void;
+  muzzleFlash: () => void;
+  kick: (amount: number) => void;
+  setViewWeapon: (index: number) => void;
+  setViewVisible: (visible: boolean) => void;
+  setLocalTeam: (team: 0 | 1) => void;
+  onFrame: (cb: (dtSeconds: number) => void) => void;
+  fps: () => number;
+  resize: () => void;
   dispose: () => void;
 };
 
-type Theme = { accent: string; secondary: string; floor: string; wall: string; glow: string };
+const TEAM_COLORS = ["#ff7a45", "#46b6ff"] as const;
+const MAX_REMOTES = 16;
+const TRACERS = 20;
 
-const MAP_THEME: Record<ArenaMapId, Theme> = {
-  "neon-yard": { accent: "#42e8ff", secondary: "#7f6cff", floor: "#101a36", wall: "#172650", glow: "#42e8ff" },
-  skyline: { accent: "#74ffbd", secondary: "#42a5ff", floor: "#101d34", wall: "#183552", glow: "#74ffbd" },
-  reactor: { accent: "#ff9a57", secondary: "#ff5e87", floor: "#241526", wall: "#3b1d35", glow: "#ff9a57" },
-};
-
-export function createArenaScene(canvas: HTMLCanvasElement, localId: string): ArenaScene {
+export function createArenaScene(canvas: HTMLCanvasElement, quality: SceneQuality): ArenaScene {
   const engine = new Engine(canvas, true, { powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: false });
-  const quality = localStorage.getItem("mindbop-arena-quality") ?? "auto";
-  const mobile = matchMedia("(max-width: 700px)").matches;
-  const lowPower = quality === "low" || (quality === "auto" && mobile);
-  const highQuality = quality === "high" || quality === "ultra";
-  engine.setHardwareScalingLevel(quality === "low" ? 1.55 : mobile ? 1.32 : highQuality ? 0.9 : innerWidth * innerHeight > 2_000_000 ? 1.04 : 1);
+  const mobile = typeof matchMedia === "function" && matchMedia("(max-width: 800px), (pointer: coarse)").matches;
+  const low = quality === "low" || (quality === "auto" && mobile);
+  const high = quality === "high" || quality === "ultra";
+  engine.setHardwareScalingLevel(low ? 1.6 : mobile ? 1.3 : quality === "ultra" ? 0.85 : high ? 0.95 : 1);
 
   const scene = new Scene(engine);
-  scene.clearColor = new Color4(0.006, 0.009, 0.025, 1);
+  scene.clearColor = new Color4(0.02, 0.03, 0.06, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = lowPower ? 0.014 : 0.0065;
-  scene.fogColor = new Color3(0.015, 0.025, 0.065);
+  scene.fogDensity = low ? 0.018 : 0.011;
+  scene.autoClear = true;
+  scene.skipPointerMovePicking = true;
 
-  const camera = new UniversalCamera("arena-camera", new Vector3(0, 2.6, -8), scene);
-  camera.minZ = 0.06;
-  let baseFov = Math.PI / 2.22;
-  camera.fov = baseFov;
-  let sensitivity = Number(localStorage.getItem("mindbop-arena-sensitivity") ?? "1");
+  const camera = new UniversalCamera("arena-cam", new Vector3(0, EYE_HEIGHT, 0), scene);
+  camera.minZ = 0.05;
+  camera.maxZ = 220;
+  camera.inputs.clear();
 
-  const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
-  ambient.intensity = 0.64;
-  ambient.diffuse = new Color3(0.5, 0.58, 1);
-  ambient.groundColor = new Color3(0.02, 0.025, 0.07);
-  const sun = new DirectionalLight("key", new Vector3(-0.45, -1, 0.35), scene);
-  sun.intensity = 1.35;
-  sun.diffuse = new Color3(0.84, 0.91, 1);
+  const hemi = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
+  hemi.intensity = 0.85;
+  const sun = new DirectionalLight("sun", new Vector3(-0.4, -1, 0.3), scene);
+  sun.intensity = 0.9;
 
-  const glow = new GlowLayer("arena-glow", scene);
-  glow.intensity = lowPower ? 0.3 : highQuality ? 0.85 : 0.58;
-  glow.blurKernelSize = highQuality ? 48 : 32;
+  let glow: GlowLayer | null = null;
+  if (!low) {
+    glow = new GlowLayer("glow", scene, { blurKernelSize: high ? 40 : 24 });
+    glow.intensity = high ? 0.7 : 0.45;
+  }
 
   const materials = new Map<string, StandardMaterial>();
-  const mat = (hex: string, emissive = 0.08, metallic = 0.45) => {
-    const key = `${hex}:${emissive}:${metallic}`;
+  const material = (hex: string, emissive = 0, alpha = 1) => {
+    const key = `${hex}|${emissive}|${alpha}`;
     let m = materials.get(key);
     if (!m) {
-      m = new StandardMaterial(key, scene);
-      m.diffuseColor = Color3.FromHexString(hex);
-      m.emissiveColor = m.diffuseColor.scale(emissive);
-      m.specularColor = new Color3(metallic, metallic, metallic);
-      m.specularPower = 72;
+      m = new StandardMaterial(`m-${key}`, scene);
+      const c = Color3.FromHexString(hex);
+      m.diffuseColor = c;
+      m.emissiveColor = c.scale(emissive);
+      m.specularColor = new Color3(0.08, 0.08, 0.08);
+      m.alpha = alpha;
       m.freeze();
       materials.set(key, m);
     }
     return m;
   };
 
-  const box = (name: string, p: Vector3, size: Vector3, color: string, emissive = 0.05) => {
-    const mesh = MeshBuilder.CreateBox(name, { width: size.x, height: size.y, depth: size.z }, scene);
-    mesh.position.copyFrom(p);
-    mesh.material = mat(color, emissive);
-    return mesh;
-  };
-  const cylinder = (name: string, p: Vector3, diameter: number, height: number, color: string, emissive = 0.05, tessellation = 16) => {
-    const mesh = MeshBuilder.CreateCylinder(name, { diameter, height, tessellation }, scene);
-    mesh.position.copyFrom(p);
-    mesh.material = mat(color, emissive);
-    return mesh;
-  };
-  const sphere = (name: string, p: Vector3, diameter: number, color: string, emissive = 0.05) => {
-    const mesh = MeshBuilder.CreateSphere(name, { diameter, segments: lowPower ? 8 : 16 }, scene);
-    mesh.position.copyFrom(p);
-    mesh.material = mat(color, emissive);
-    return mesh;
+  // ---------- map ----------
+  let mapRoot: TransformNode | null = null;
+  const shade = (hex: string, f: number) => {
+    const c = Color3.FromHexString(hex);
+    return new Color3(Math.min(1, c.r * f), Math.min(1, c.g * f), Math.min(1, c.b * f)).toHexString();
   };
 
-  const mapRoot = new TransformNode("map-root", scene);
-  const mapGroups: Record<ArenaMapId, Mesh[]> = { "neon-yard": [], skyline: [], reactor: [] };
-  const mapLights: Record<ArenaMapId, PointLight[]> = { "neon-yard": [], skyline: [], reactor: [] };
-  const add = (map: ArenaMapId, mesh: Mesh) => { mesh.parent = mapRoot; mapGroups[map].push(mesh); return mesh; };
-  const addLight = (map: ArenaMapId, light: PointLight) => { light.parent = mapRoot; mapLights[map].push(light); return light; };
+  function loadMap(map: ArenaMap) {
+    mapRoot?.dispose(false, false);
+    mapRoot = new TransformNode("map", scene);
+    scene.clearColor = Color4.FromHexString(`${map.theme.sky}ff`);
+    scene.fogColor = Color3.FromHexString(map.theme.fog);
 
-  const makeWall = (map: ArenaMapId, name: string, p: Vector3, size: Vector3) => add(map, box(`${map}-${name}`, p, size, MAP_THEME[map].wall, 0.025));
-  const makeLight = (map: ArenaMapId, p: Vector3, color: string, intensity = 1.5) => {
-    const light = new PointLight(`${map}-light-${mapLights[map].length}`, p, scene);
-    light.diffuse = Color3.FromHexString(color);
-    light.specular = light.diffuse;
-    light.intensity = lowPower ? intensity * 0.45 : intensity;
-    light.range = lowPower ? 9 : 13;
-    return addLight(map, light);
-  };
-
-  // Shared arena shell: deliberately architectural rather than a flat box-and-grid prototype.
-  for (const map of Object.keys(MAP_THEME) as ArenaMapId[]) {
-    const theme = MAP_THEME[map];
-    add(map, box(`${map}-floor`, new Vector3(0, -0.32, 0), new Vector3(42, 0.64, 42), theme.floor, 0.025));
-    add(map, box(`${map}-floor-panel`, new Vector3(0, 0.02, 0), new Vector3(38, 0.08, 38), "#15223f", 0.06));
-    makeWall(map, "north", new Vector3(0, 2.6, 19.5), new Vector3(40, 5.2, 1));
-    makeWall(map, "south", new Vector3(0, 2.6, -19.5), new Vector3(40, 5.2, 1));
-    makeWall(map, "east", new Vector3(19.5, 2.6, 0), new Vector3(1, 5.2, 40));
-    makeWall(map, "west", new Vector3(-19.5, 2.6, 0), new Vector3(1, 5.2, 40));
-
-    for (let i = -18; i <= 18; i += 6) {
-      add(map, box(`${map}-lane-x-${i}`, new Vector3(i, 0.075, 0), new Vector3(0.025, 0.025, 36), theme.secondary, 0.16));
-      add(map, box(`${map}-lane-z-${i}`, new Vector3(0, 0.078, i), new Vector3(36, 0.025, 0.025), theme.secondary, 0.16));
-    }
-    for (const [x, z] of [[-15, -15], [15, -15], [-15, 15], [15, 15]]) {
-      add(map, box(`${map}-light-strip-${x}-${z}`, new Vector3(x, 0.16, z), new Vector3(2.6, 0.06, 0.08), theme.accent, 0.7));
-      makeLight(map, new Vector3(x, 2.4, z), theme.accent, 1.15);
-    }
-  }
-
-  // NEON YARD — asymmetric lanes, central plaza, flank routes, elevated corners.
-  const ny = MAP_THEME["neon-yard"];
-  const nyCovers: [number, number, number, number, number][] = [
-    [-10, -1, 3.2, 6.4, 2.8], [10, 1, 3.2, 6.4, 2.8],
-    [-4, 8, 5.8, 1.6, 2.2], [4, -8, 5.8, 1.6, 2.2],
-    [-12, 10, 2.2, 3.8, 3.4], [12, -10, 2.2, 3.8, 3.4],
-    [-5, -5, 2.5, 2.5, 2.0], [5, 5, 2.5, 2.5, 2.0],
-  ];
-  for (const [x, z, w, d, h] of nyCovers) {
-    add("neon-yard", box("ny-cover", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#20365d", 0.035));
-    add("neon-yard", box("ny-edge", new Vector3(x, h - 0.06, z), new Vector3(w * 0.86, 0.09, d * 0.86), ny.accent, 0.24));
-  }
-  for (const [x, z] of [[-13, -13], [13, -13], [-13, 13], [13, 13]]) {
-    add("neon-yard", cylinder("ny-tower", new Vector3(x, 2.4, z), 1.15, 4.8, "#192b50", 0.06, 12));
-    add("neon-yard", cylinder("ny-tower-core", new Vector3(x, 2.4, z), 0.28, 4.95, ny.accent, 0.82, 10));
-  }
-  for (const [x, z, rot] of [[0, -15, 0], [0, 15, 0], [-15, 0, Math.PI / 2], [15, 0, Math.PI / 2]]) {
-    const gate = add("neon-yard", box("ny-gate", new Vector3(x, 3.3, z), new Vector3(rot ? 6.8 : 2.2, 6.6, rot ? 2.2 : 6.8), "#1b3159", 0.04));
-    gate.rotation.y = rot;
-    add("neon-yard", box("ny-gate-light", new Vector3(x, 5.8, z), new Vector3(rot ? 5.8 : 0.12, 0.12, rot ? 0.12 : 5.8), ny.accent, 0.62));
-  }
-
-  // SKYLINE — rooftop arena with tall cover, catwalks and a central tower.
-  const sky = MAP_THEME.skyline;
-  for (const [x, z, w, d, h] of [
-    [-11, -8, 3, 7, 3.8], [11, 8, 3, 7, 3.8], [-4, 12, 7, 2, 2.2], [4, -12, 7, 2, 2.2],
-    [-12, 9, 2.2, 3, 4.6], [12, -9, 2.2, 3, 4.6],
-  ] as const) {
-    add("skyline", box("sky-block", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#203a5e", 0.035));
-    add("skyline", box("sky-cap", new Vector3(x, h - 0.06, z), new Vector3(w * 0.84, 0.09, d * 0.84), sky.accent, 0.3));
-  }
-  for (const [x, z] of [[-7, 0], [7, 0]]) {
-    add("skyline", box("sky-catwalk", new Vector3(x, 2.0, z), new Vector3(3.8, 0.3, 10), "#29496f", 0.04));
-    add("skyline", box("sky-rail-a", new Vector3(x - 1.8, 2.55, z), new Vector3(0.08, 1.0, 10), sky.accent, 0.28));
-    add("skyline", box("sky-rail-b", new Vector3(x + 1.8, 2.55, z), new Vector3(0.08, 1.0, 10), sky.accent, 0.28));
-  }
-  add("skyline", box("sky-tower", new Vector3(0, 3.2, 0), new Vector3(3.8, 6.4, 3.8), "#172f52", 0.06));
-  add("skyline", box("sky-tower-window", new Vector3(0, 4.0, -1.94), new Vector3(2.4, 1.6, 0.06), sky.secondary, 0.7));
-  add("skyline", box("sky-bridge", new Vector3(0, 1.55, 7), new Vector3(8.5, 0.22, 2.1), "#2b4c72", 0.05));
-
-  // REACTOR — industrial power facility with tanks, pipes, barriers and a hot central core.
-  const reactor = MAP_THEME.reactor;
-  for (const [x, z, w, d, h] of [
-    [-8, -10, 7, 2.4, 3.5], [8, 10, 7, 2.4, 3.5], [-12, 5, 2.4, 6.5, 3], [12, -5, 2.4, 6.5, 3],
-    [-5, 5, 3.0, 3.0, 2.6], [5, -5, 3.0, 3.0, 2.6],
-  ] as const) {
-    add("reactor", box("reactor-barrier", new Vector3(x, h / 2, z), new Vector3(w, h, d), "#3a263d", 0.04));
-    add("reactor", box("reactor-edge", new Vector3(x, h - 0.06, z), new Vector3(w * 0.88, 0.1, d * 0.88), reactor.accent, 0.32));
-  }
-  for (const [x, z] of [[-7, 6], [7, -6], [-7, -6], [7, 6]]) {
-    add("reactor", cylinder("reactor-tank", new Vector3(x, 2.5, z), 3.0, 5.0, "#462c40", 0.04, 20));
-    add("reactor", cylinder("reactor-tank-core", new Vector3(x, 2.5, z), 2.15, 5.1, reactor.accent, 0.16, 20));
-    add("reactor", cylinder("reactor-tank-ring", new Vector3(x, 4.4, z), 3.15, 0.12, reactor.secondary, 0.75, 24));
-  }
-  add("reactor", cylinder("reactor-core", new Vector3(0, 2.8, 0), 2.8, 5.6, "#301d35", 0.08, 24));
-  add("reactor", cylinder("reactor-core-light", new Vector3(0, 2.8, 0), 1.65, 5.75, reactor.accent, 0.8, 20));
-  for (const z of [-12, -4, 4, 12]) {
-    add("reactor", cylinder("reactor-pipe", new Vector3(0, 4.4, z), 0.22, 5.8, reactor.secondary, 0.62, 12));
-  }
-
-  const beacons: { pillar: Mesh; cap: Mesh }[] = [];
-  const beaconSpots = [[-16, -16], [16, -16], [-16, 16], [16, 16]] as const;
-  for (const [x, z] of beaconSpots) {
-    const pillar = box("beacon", new Vector3(x, 2.8, z), new Vector3(0.72, 5.6, 0.72), ny.accent, 0.72);
-    const cap = box("beacon-cap", new Vector3(x, 5.72, z), new Vector3(1.5, 0.12, 1.5), ny.secondary, 0.82);
-    pillar.rotation.y = Math.PI / 4; cap.rotation.y = Math.PI / 4;
-    beacons.push({ pillar, cap });
-  }
-
-  const zone = MeshBuilder.CreateTorus("capture-zone", { diameter: 9.5, thickness: 0.16, tessellation: lowPower ? 32 : 64 }, scene);
-  zone.rotation.x = Math.PI / 2; zone.position.y = 0.09;
-  const zoneCore = MeshBuilder.CreateCylinder("capture-core", { diameter: 7.6, height: 0.05, tessellation: lowPower ? 32 : 64 }, scene);
-  zoneCore.position.y = 0.04; zoneCore.visibility = 0.28;
-  const zonePillar = MeshBuilder.CreateCylinder("zone-beam", { diameter: 0.22, height: 6, tessellation: 12 }, scene);
-  zonePillar.position.y = 3; zonePillar.visibility = 0.2;
-  const zoneHalo = MeshBuilder.CreateTorus("zone-halo", { diameter: 12, thickness: 0.045, tessellation: lowPower ? 24 : 48 }, scene);
-  zoneHalo.rotation.x = Math.PI / 2; zoneHalo.position.y = 0.12;
-
-  const weaponRoot = new TransformNode("weapon-root", scene); weaponRoot.parent = camera;
-  const weaponBody = box("weapon-body", new Vector3(0.46, -0.38, 1.05), new Vector3(0.28, 0.22, 0.88), "#7f6cff", 0.28); weaponBody.parent = weaponRoot;
-  const weaponUpper = box("weapon-upper", new Vector3(0.46, -0.27, 0.79), new Vector3(0.18, 0.12, 0.62), "#28385d", 0.08); weaponUpper.parent = weaponRoot;
-  const weaponBarrel = cylinder("weapon-barrel", new Vector3(0.46, -0.38, 0.55), 0.09, 0.5, "#42e8ff", 0.65, 12); weaponBarrel.rotation.x = Math.PI / 2; weaponBarrel.parent = weaponRoot;
-  const weaponCore = box("weapon-core", new Vector3(0.46, -0.38, 0.75), new Vector3(0.1, 0.07, 0.4), "#42e8ff", 0.95); weaponCore.parent = weaponRoot;
-  const weaponSight = box("weapon-sight", new Vector3(0.46, -0.21, 0.68), new Vector3(0.055, 0.055, 0.26), "#eef4ff", 0.9); weaponSight.parent = weaponRoot;
-  const hand = cylinder("weapon-hand", new Vector3(0.46, -0.55, 0.92), 0.18, 0.35, "#a56e56", 0.02, 12); hand.rotation.x = Math.PI / 2; hand.parent = weaponRoot;
-  const muzzle = sphere("weapon-muzzle", new Vector3(0.46, -0.38, 0.26), 0.16, "#ffffff", 1); muzzle.parent = weaponRoot; muzzle.visibility = 0;
-
-  type Avatar = { root: Mesh; parts: Mesh[]; material: StandardMaterial };
-  const remotes = new Map<string, Avatar>();
-  let yaw = 0, pitch = 0, flash = 0, recoil = 0, inputX = 0, inputZ = 0, sprint = false, aiming = false;
-  let lastFrame = performance.now();
-  const authoritative = new Vector3(0, 2.55, -8);
-  const predicted = authoritative.clone();
-
-  const buildAvatar = (id: string, team: string): Avatar => {
-    const root = MeshBuilder.CreateBox(`avatar-root-${id}`, { width: 0.01, height: 0.01, depth: 0.01 }, scene);
-    root.isVisible = false;
-    const color = team === "ember" ? "#ff5e87" : "#42e8ff";
-    const material = mat(color, 0.24, 0.55);
-    const parts: Mesh[] = [];
-    const body = MeshBuilder.CreateCapsule(`avatar-body-${id}`, { height: 1.55, radius: 0.38, tessellation: lowPower ? 6 : 12 }, scene); body.parent = root; body.position.y = 0.9; body.material = material; parts.push(body);
-    const head = MeshBuilder.CreateSphere(`avatar-head-${id}`, { diameter: 0.58, segments: lowPower ? 8 : 14 }, scene); head.parent = root; head.position.y = 1.9; head.material = mat("#dbe7ff", 0.08, 0.65); parts.push(head);
-    const visor = box(`avatar-visor-${id}`, new Vector3(0, 1.93, 0.26), new Vector3(0.42, 0.11, 0.05), color, 0.8); visor.parent = root; parts.push(visor);
-    const shoulderL = box(`avatar-shoulder-l-${id}`, new Vector3(-0.48, 1.18, 0), new Vector3(0.22, 0.3, 0.42), color, 0.18); shoulderL.parent = root; parts.push(shoulderL);
-    const shoulderR = box(`avatar-shoulder-r-${id}`, new Vector3(0.48, 1.18, 0), new Vector3(0.22, 0.3, 0.42), color, 0.18); shoulderR.parent = root; parts.push(shoulderR);
-    const backpack = box(`avatar-pack-${id}`, new Vector3(0, 1.02, -0.36), new Vector3(0.45, 0.55, 0.16), "#1a2747", 0.08); backpack.parent = root; parts.push(backpack);
-    const weapon = box(`avatar-weapon-${id}`, new Vector3(0.38, 1.1, 0.38), new Vector3(0.08, 0.08, 0.55), color, 0.65); weapon.parent = root; weapon.rotation.x = 0.12; parts.push(weapon);
-    return { root, parts, material };
-  };
-
-  function update(view: ArenaView) {
-    const local = view.players[localId];
-    if (local) {
-      authoritative.set(local.x, local.y + 1.55, local.z);
-      const correction = Vector3.Distance(predicted, authoritative);
-      if (correction > 4) predicted.copyFrom(authoritative);
-      else Vector3.LerpToRef(predicted, authoritative, Math.min(1, correction > 0.8 ? 0.28 : 0.12), predicted);
-      if (Math.abs(local.rotation - yaw) > 0.75) yaw = local.rotation;
-      pitch = local.pitch;
-    }
-    for (const [id, avatar] of remotes) {
-      const p = view.players[id];
-      if (!view.playerIds.includes(id) || !p || p.hp <= 0) {
-        avatar.parts.forEach((part) => part.dispose()); avatar.root.dispose(); remotes.delete(id);
+    const groups = new Map<string, Mesh[]>();
+    const addSolid = (s: Solid) => {
+      const w = s.maxX - s.minX, h = s.maxY - s.minY, d = s.maxZ - s.minZ;
+      const box = MeshBuilder.CreateBox(s.id, { width: w, height: h, depth: d }, scene);
+      box.position.set((s.minX + s.maxX) / 2, (s.minY + s.maxY) / 2, (s.minZ + s.maxZ) / 2);
+      const base = s.kind === "wall" ? map.theme.wall : s.tone === 1 ? shade(map.theme.wall, 1.7) : s.tone === 2 ? shade(map.theme.accent2, 0.55) : shade(map.theme.wall, 1.25);
+      const key = `${base}|${s.kind === "wall" ? 0 : 0.05}`;
+      const list = groups.get(key) ?? [];
+      list.push(box);
+      groups.set(key, list);
+    };
+    for (const s of map.solids) addSolid(s);
+    for (const [key, list] of groups) {
+      const [hex, emissive] = key.split("|");
+      const merged = Mesh.MergeMeshes(list, true, true, undefined, false, false);
+      if (merged) {
+        merged.material = material(hex, Number(emissive));
+        merged.parent = mapRoot;
+        merged.freezeWorldMatrix();
+        merged.isPickable = false;
       }
     }
-    for (const id of view.playerIds) {
-      if (id === localId) continue;
-      const p = view.players[id]; if (!p || p.hp <= 0) continue;
-      const avatar = remotes.get(id) ?? buildAvatar(id, p.team);
-      const cloaked = p.cloakedUntil > Date.now();
-      const color = p.team === "ember" ? "#ff5e87" : "#42e8ff";
-      avatar.parts.forEach((part) => { part.visibility = cloaked ? 0.12 : 1; });
-      avatar.material.diffuseColor = Color3.FromHexString(cloaked ? "#7f6cff" : color);
-      avatar.material.emissiveColor = avatar.material.diffuseColor.scale(cloaked ? 0.1 : 0.24);
-      Vector3.LerpToRef(avatar.root.position, new Vector3(p.x, p.y, p.z), 0.22, avatar.root.position);
-      avatar.root.rotation.y = p.rotation;
-      avatar.root.scaling.y = p.shieldUntil > Date.now() ? 1.08 : 1;
+    // glowing accent strips along the tops of solids with tone 2 and along wall bases
+    const strips: Mesh[] = [];
+    for (const s of map.solids) {
+      if (s.kind === "wall" || s.tone !== 2) continue;
+      const strip = MeshBuilder.CreateBox(`${s.id}-strip`, { width: s.maxX - s.minX + 0.04, height: 0.06, depth: s.maxZ - s.minZ + 0.04 }, scene);
+      strip.position.set((s.minX + s.maxX) / 2, s.maxY + 0.01, (s.minZ + s.maxZ) / 2);
+      strips.push(strip);
     }
-
-    const activeTheme = MAP_THEME[view.mapId];
-    for (const id of Object.keys(mapGroups) as ArenaMapId[]) {
-      const enabled = id === view.mapId;
-      mapGroups[id].forEach((mesh) => mesh.setEnabled(enabled));
-      mapLights[id].forEach((light) => { light.setEnabled(enabled); });
+    if (strips.length) {
+      const merged = Mesh.MergeMeshes(strips, true, true, undefined, false, false);
+      if (merged) { merged.material = material(map.theme.accent, 0.95); merged.parent = mapRoot; merged.isPickable = false; }
     }
-    for (const pair of beacons) { pair.pillar.material = mat(activeTheme.accent, 0.72); pair.cap.material = mat(activeTheme.secondary, 0.82); }
-    const zoneColor = view.zone.owner === "ember" ? "#ff5e87" : view.zone.owner === "azure" ? "#42e8ff" : activeTheme.secondary;
-    zone.material = mat(zoneColor, 1); zoneCore.material = mat(zoneColor, 0.14); zonePillar.material = mat(zoneColor, 0.48); zoneHalo.material = mat(zoneColor, 0.72);
-    zone.position.x += (view.zone.x - zone.position.x) * 0.14; zone.position.z += (view.zone.z - zone.position.z) * 0.14;
-    zoneCore.position.x = zone.position.x; zoneCore.position.z = zone.position.z; zonePillar.position.x = zone.position.x; zonePillar.position.z = zone.position.z; zoneHalo.position.x = zone.position.x; zoneHalo.position.z = zone.position.z;
+    // floor with a procedural grid
+    const tex = new DynamicTexture("floor-grid", { width: 512, height: 512 }, scene, true);
+    const ctx = tex.getContext() as CanvasRenderingContext2D;
+    ctx.fillStyle = map.theme.floor;
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.strokeStyle = shade(map.theme.accent, 0.35);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(0, 0, 512, 512);
+    ctx.strokeStyle = shade(map.theme.floor, 1.9);
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(i * 128, 0); ctx.lineTo(i * 128, 512); ctx.moveTo(0, i * 128); ctx.lineTo(512, i * 128); ctx.stroke(); }
+    tex.update();
+    tex.wrapU = tex.wrapV = 1;
+    tex.uScale = 30;
+    tex.vScale = 20;
+    const floorMat = new StandardMaterial("floor", scene);
+    floorMat.diffuseTexture = tex;
+    floorMat.specularColor = new Color3(0.05, 0.05, 0.05);
+    const width = map.bounds.maxX - map.bounds.minX, depth = map.bounds.maxZ - map.bounds.minZ;
+    const floor = MeshBuilder.CreateGround("floor", { width, height: depth }, scene);
+    floor.material = floorMat;
+    floor.parent = mapRoot;
+    floor.isPickable = false;
+    // team base pads
+    for (const team of [0, 1] as const) {
+      const pad = MeshBuilder.CreateGround(`pad-${team}`, { width: 6, height: depth - 4 }, scene);
+      pad.position.set(team === 0 ? map.bounds.minX + 3.2 : map.bounds.maxX - 3.2, 0.012, 0);
+      pad.material = material(TEAM_COLORS[team], 0.35, 0.28);
+      pad.parent = mapRoot;
+      pad.isPickable = false;
+    }
+    hemi.diffuse = Color3.FromHexString(shade(map.theme.accent2, 0.9));
+    hemi.groundColor = Color3.FromHexString(map.theme.floor);
+    sun.diffuse = Color3.FromHexString(shade(map.theme.accent, 0.5));
   }
 
-  engine.runRenderLoop(() => {
-    const now = performance.now(); const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
-    const length = Math.hypot(inputX, inputZ);
-    if (length > 0) {
-      const speed = sprint ? 11.5 : 9.5;
-      predicted.x += (inputX / length) * speed * dt;
-      predicted.z += (inputZ / length) * speed * dt;
-      predicted.x = Math.max(-18, Math.min(18, predicted.x)); predicted.z = Math.max(-18, Math.min(18, predicted.z));
+  // ---------- remote players ----------
+  type Avatar = { root: TransformNode; body: Mesh; head: Mesh; gun: Mesh; visor: Mesh; tag: Mesh; tagTexture: DynamicTexture; name: string; team: 0 | 1 };
+  const avatars: Avatar[] = [];
+  const ghostMat = material("#9fb4c9", 0.1, 0.22);
+  const shieldMat = material("#7df2ff", 0.8, 0.38);
+  const teamMat = (team: 0 | 1) => material(TEAM_COLORS[team], 0.18);
+  const darkMat = material("#10151f", 0.05);
+  for (let i = 0; i < MAX_REMOTES; i++) {
+    const root = new TransformNode(`avatar-${i}`, scene);
+    const body = MeshBuilder.CreateCapsule(`body-${i}`, { height: 1.4, radius: 0.34, tessellation: low ? 8 : 12, subdivisions: 1 }, scene);
+    body.parent = root; body.position.y = 0.7;
+    const head = MeshBuilder.CreateSphere(`head-${i}`, { diameter: 0.5, segments: low ? 6 : 10 }, scene);
+    head.parent = root; head.position.y = 1.62;
+    const visor = MeshBuilder.CreateBox(`visor-${i}`, { width: 0.34, height: 0.1, depth: 0.12 }, scene);
+    visor.parent = root; visor.position.set(0, 1.64, 0.2);
+    visor.material = material("#bff6ff", 1);
+    const gun = MeshBuilder.CreateBox(`gun-${i}`, { width: 0.1, height: 0.14, depth: 0.7 }, scene);
+    gun.parent = root; gun.position.set(0.3, 1.1, 0.4);
+    gun.material = darkMat;
+    const tag = MeshBuilder.CreatePlane(`tag-${i}`, { width: 1.6, height: 0.4 }, scene);
+    tag.parent = root; tag.position.y = 2.25; tag.billboardMode = Mesh.BILLBOARDMODE_ALL;
+    const tagTexture = new DynamicTexture(`tag-tex-${i}`, { width: 256, height: 64 }, scene, false);
+    const tagMat = new StandardMaterial(`tag-mat-${i}`, scene);
+    tagMat.diffuseTexture = tagTexture; tagMat.emissiveColor = new Color3(1, 1, 1); tagMat.opacityTexture = tagTexture; tagMat.disableLighting = true;
+    tag.material = tagMat;
+    tag.isPickable = false;
+    root.setEnabled(false);
+    avatars.push({ root, body, head, gun, visor, tag, tagTexture, name: "", team: 0 });
+  }
+  const drawTag = (a: Avatar, name: string, team: 0 | 1) => {
+    a.name = name; a.team = team;
+    const ctx = a.tagTexture.getContext() as CanvasRenderingContext2D;
+    ctx.clearRect(0, 0, 256, 64);
+    ctx.font = "700 30px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0,0,0,.75)";
+    ctx.strokeText(name, 128, 42);
+    ctx.fillStyle = TEAM_COLORS[team];
+    ctx.fillText(name, 128, 42);
+    a.tagTexture.update();
+  };
+
+  let localTeam: 0 | 1 = 0;
+  function setRemotes(list: RemoteRender[]) {
+    const used = new Set<number>();
+    for (const r of list.slice(0, MAX_REMOTES)) {
+      const a = avatars[r.slot];
+      if (!a) continue;
+      used.add(r.slot);
+      a.root.setEnabled(r.alive);
+      if (!r.alive) continue;
+      a.root.position.set(r.x, r.y, r.z);
+      a.root.rotation.y = r.yaw;
+      a.gun.rotation.x = r.pitch * 0.8;
+      if (a.name !== r.name || a.team !== r.team) drawTag(a, r.name, r.team);
+      const mat = r.cloaked ? ghostMat : r.shield ? shieldMat : teamMat(r.team);
+      a.body.material = mat; a.head.material = r.cloaked ? ghostMat : material("#d8dde6", 0.1);
+      a.visor.isVisible = !r.cloaked;
+      a.tag.isVisible = !r.cloaked && r.team === localTeam;
+      a.body.visibility = r.protect ? 0.55 : 1;
     }
-    camera.position.copyFrom(predicted); camera.rotation.set(pitch, yaw, 0);
-    const targetFov = aiming ? baseFov * 0.82 : baseFov; camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
-    zone.rotation.z += 0.006; zoneCore.rotation.y -= 0.003; zoneHalo.rotation.z -= 0.004; zonePillar.scaling.y = 0.88 + Math.sin(now * 0.002) * 0.08;
-    flash = Math.max(0, flash - dt * 8); recoil = Math.max(0, recoil - dt * 10);
-    weaponRoot.position.z = -recoil * 0.055; weaponRoot.position.y = recoil * 0.025; weaponRoot.rotation.x = recoil * 0.045;
-    weaponCore.scaling.z = 1 + flash * 0.35; weaponBarrel.scaling.z = 1 + flash * 0.2; muzzle.visibility = flash > 0.04 ? 1 : 0; muzzle.scaling.setAll(0.7 + flash * 1.4);
+    for (let i = 0; i < avatars.length; i++) if (!used.has(i)) avatars[i].root.setEnabled(false);
+  }
+
+  // ---------- tracers, flashes, viewmodel ----------
+  const tracers: { mesh: Mesh; life: number }[] = [];
+  for (let i = 0; i < TRACERS; i++) {
+    const mesh = MeshBuilder.CreateBox(`tracer-${i}`, { width: 0.025, height: 0.025, depth: 1 }, scene);
+    mesh.isPickable = false; mesh.setEnabled(false);
+    tracers.push({ mesh, life: 0 });
+  }
+  let tracerIndex = 0;
+  const tracer: ArenaScene["tracer"] = (from, to, team, heavy) => {
+    const t = tracers[tracerIndex++ % TRACERS];
+    const dx = to[0] - from[0], dy = to[1] - from[1], dz = to[2] - from[2];
+    const len = Math.hypot(dx, dy, dz) || 0.01;
+    t.mesh.position.set(from[0] + dx / 2, from[1] + dy / 2, from[2] + dz / 2);
+    t.mesh.scaling.set(heavy ? 2.2 : 1, heavy ? 2.2 : 1, len);
+    t.mesh.lookAt(new Vector3(to[0], to[1], to[2]));
+    t.mesh.material = material(TEAM_COLORS[team], 1);
+    t.mesh.setEnabled(true);
+    t.life = 0.09;
+  };
+
+  const view = new TransformNode("viewmodel", scene);
+  view.parent = camera;
+  view.position.set(0.28, -0.26, 0.55);
+  const weaponMeshes: Mesh[] = [];
+  const addView = (w: number, h: number, d: number, z: number, hex: string) => {
+    const m = MeshBuilder.CreateBox("vm", { width: w, height: h, depth: d }, scene);
+    m.parent = view; m.position.set(0, 0, z); m.material = material(hex, 0.08); m.isPickable = false; m.renderingGroupId = 1;
+    return m;
+  };
+  const vmSets: Mesh[][] = [
+    [addView(0.1, 0.14, 0.62, 0.1, "#2c3447"), addView(0.04, 0.04, 0.2, 0.52, "#8ea3c4")],
+    [addView(0.14, 0.15, 0.5, 0.05, "#3a2f2f"), addView(0.1, 0.1, 0.3, 0.42, "#c4895b")],
+    [addView(0.07, 0.11, 0.85, 0.2, "#24324a"), addView(0.05, 0.05, 0.3, 0.8, "#7df2ff")],
+    [addView(0.09, 0.13, 0.4, 0.05, "#312844"), addView(0.05, 0.05, 0.16, 0.34, "#b79cff")],
+  ];
+  for (const set of vmSets) weaponMeshes.push(...set);
+  const flash = MeshBuilder.CreateSphere("flash", { diameter: 0.16, segments: 6 }, scene);
+  flash.parent = view; flash.position.set(0, 0.02, 0.85); flash.material = material("#ffe9a8", 1, 0.9); flash.renderingGroupId = 1; flash.setEnabled(false);
+  let flashLife = 0, kickValue = 0;
+  const setViewWeapon = (index: number) => vmSets.forEach((set, i) => set.forEach((m) => m.setEnabled(i === index)));
+  setViewWeapon(0);
+  const setViewVisible = (visible: boolean) => { view.setEnabled(visible); };
+
+  // ---------- frame loop ----------
+  const frameCallbacks: Array<(dt: number) => void> = [];
+  engine.runRenderLoop(() => {
+    const dt = Math.min(0.1, engine.getDeltaTime() / 1000);
+    for (const cb of frameCallbacks) cb(dt);
+    for (const t of tracers) if (t.life > 0) { t.life -= dt; if (t.life <= 0) t.mesh.setEnabled(false); }
+    if (flashLife > 0) { flashLife -= dt; if (flashLife <= 0) flash.setEnabled(false); }
+    kickValue = Math.max(0, kickValue - dt * 6);
+    view.position.z = 0.55 - kickValue * 0.12;
+    view.rotation.x = -kickValue * 0.22;
     scene.render();
   });
 
-  const resize = () => engine.resize(); window.addEventListener("resize", resize);
   return {
-    update,
-    look(dx, dy) { yaw += dx * 0.0022 * sensitivity; pitch = Math.max(-1.3, Math.min(1.3, pitch + dy * 0.0022 * sensitivity)); },
-    fire() { flash = 1; recoil = 1; },
-    setWeapon(next) { const color = next === "scatter" ? "#ff9a57" : next === "rail" ? "#74ffbd" : "#7f6cff"; weaponBody.material = mat(color, 0.3); weaponCore.material = mat(color, 0.95); weaponBarrel.material = mat(color, 0.75); weaponSight.material = mat(next === "rail" ? "#74ffbd" : "#eef4ff", 0.9); },
-    setHero(_hero) {},
-    setSensitivity(value) { sensitivity = Math.max(0.5, Math.min(2, value)); },
-    setFov(value) { baseFov = Math.max(Math.PI / 3.2, Math.min(Math.PI / 1.75, value * Math.PI / 180)); camera.fov = baseFov; },
-    getAim() { return { yaw, pitch }; },
-    setInput(x, z, nextSprint) { inputX = x; inputZ = z; sprint = nextSprint; },
-    setAimMode(active) { aiming = active; },
-    dispose() { window.removeEventListener("resize", resize); for (const avatar of remotes.values()) { avatar.parts.forEach((part) => part.dispose()); avatar.root.dispose(); } remotes.clear(); scene.dispose(); engine.dispose(); materials.clear(); },
+    loadMap,
+    setLocal(x, y, z, yaw, pitch, fov) {
+      camera.position.set(x, y + EYE_HEIGHT, z);
+      camera.rotation.set(pitch, yaw, 0);
+      camera.fov = fov;
+    },
+    setRemotes,
+    tracer,
+    muzzleFlash() { flash.setEnabled(true); flashLife = 0.05; },
+    kick(amount) { kickValue = Math.min(1.4, kickValue + amount); },
+    setViewWeapon,
+    setViewVisible,
+    setLocalTeam(team) { localTeam = team; },
+    onFrame(cb) { frameCallbacks.push(cb); },
+    fps: () => engine.getFps(),
+    resize: () => engine.resize(),
+    dispose() { engine.stopRenderLoop(); scene.dispose(); engine.dispose(); },
   };
 }
+
+export const AVATAR_HEIGHT = BODY_HEIGHT;

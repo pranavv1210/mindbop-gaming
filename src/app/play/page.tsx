@@ -105,7 +105,7 @@ export default function Hub() {
   }
   function openGame(gameId: string) {
     const game = games.find((item) => item.id === gameId);
-    if (game?.mode === "solo" && game.route) {
+    if (game?.route && game.mode !== "multiplayer") {
       router.push(game.route);
       return;
     }

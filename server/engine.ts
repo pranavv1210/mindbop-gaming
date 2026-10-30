@@ -14,7 +14,6 @@ import { twoTruthsActionSchema } from "./games/two-truths/module";
 import { skyActionSchema } from "./games/sky-scramble/module";
 import { comedyActionSchema } from "./games/comedy-chaos/module";
 import type { ComedySettings } from "../src/games/comedy-chaos/types";
-import { arenaActionSchema } from "./games/arena/module";
 
 const name = z
   .string()
@@ -56,7 +55,6 @@ const commandSchema = z.discriminatedUnion("type", [
       twoTruthsActionSchema,
       skyActionSchema,
       comedyActionSchema,
-      arenaActionSchema,
     ]),
   }),
 ]);
