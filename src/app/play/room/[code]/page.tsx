@@ -209,7 +209,7 @@ export default function RoomPage({
           {error}
         </p>
       )}
-      <div id="active-game" className={room.phase === "waiting" ? "room-layout" : "active-game-slot"}>
+      <div id="active-game" data-game={room.phase === "waiting" ? undefined : room.gameId} className={room.phase === "waiting" ? "room-layout" : "active-game-slot"}>
         {room.phase !== "waiting" && <GameFullscreen targetId="active-game" />}
         {room.phase === "waiting" ? (
           <section className="room-panel">
