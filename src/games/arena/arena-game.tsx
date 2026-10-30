@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { TouchEvent as ReactTouchEvent } from "react";
 import { Crosshair, LogOut, Maximize2, RotateCcw, Settings2, Shield, Skull, Users, Wifi, X, Zap } from "lucide-react";
 import { useGame } from "@/components/game-provider";
+import { MobileLandscapeGate } from "@/components/mobile-landscape-gate";
 import { HERO_IDS, HEROES, TEAM_NAMES, WEAPONS, WEAPON_IDS, type HeroId } from "@/arena/config";
 import { MAP_IDS, getMap } from "@/arena/maps";
 import { ArenaController, type Settings, type UiState } from "./controller";
@@ -131,6 +132,7 @@ export default function ArenaGame() {
   return (
     <main className={`${styles.arena} ${playing ? styles.live : ""}`} data-team={teamName}>
       <canvas ref={canvasRef} className={styles.canvas} aria-label="MindBop Arena first-person combat map" />
+      <MobileLandscapeGate game="MindBop Arena" />
 
       {!playing && (
         <section className={styles.menu} aria-label="Arena lobby">

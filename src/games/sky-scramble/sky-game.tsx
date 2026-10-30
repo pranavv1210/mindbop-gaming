@@ -8,6 +8,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { useGame } from "@/components/game-provider";
+import { MobileLandscapeGate } from "@/components/mobile-landscape-gate";
 import type { RoomView } from "@/lib/protocol";
 import type { SkyAction, SkyView } from "./types";
 import { SkyViewport } from "./sky-viewport";
@@ -122,6 +123,7 @@ export function SkyScrambleGame({
   return (
     <section className="sky-game">
       <SkyViewport game={game} id={id} />
+      <MobileLandscapeGate game="Sky Scramble" />
       <header className="sky-hud">
         <div>
           <small>Round</small>

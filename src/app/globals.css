@@ -4530,6 +4530,76 @@ html[data-theme="dark"] .rating-stars button.selected{background:#4b3d18;color:#
   .game-fullscreen span{display:none}
 }
 
+/* Control-heavy 3D games require a wide phone viewport. The gate disappears
+   automatically after rotation and never affects mouse/keyboard devices. */
+.mobile-landscape-gate{display:none}
+@media (pointer:coarse) and (orientation:portrait) and (max-width:760px){
+  .mobile-landscape-gate{
+    position:absolute;
+    z-index:1000;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    padding:32px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 32%,#455bd866 0,transparent 38%),
+      linear-gradient(155deg,#101934 0%,#080d1d 72%);
+    color:#f7f9ff;
+    text-align:center;
+    touch-action:none;
+  }
+  .mobile-landscape-gate::before,.mobile-landscape-gate::after{
+    content:"";
+    position:absolute;
+    width:220px;
+    height:220px;
+    border:1px solid #7df2ff22;
+    border-radius:50%;
+    pointer-events:none;
+  }
+  .mobile-landscape-gate::before{top:-120px;right:-80px}
+  .mobile-landscape-gate::after{bottom:-145px;left:-75px;width:280px;height:280px}
+  .mobile-landscape-phone{position:relative;width:118px;height:118px;margin-bottom:24px}
+  .mobile-landscape-phone>svg:first-child{
+    position:absolute;
+    left:31px;
+    top:12px;
+    width:56px;
+    height:92px;
+    padding:7px;
+    border:2px solid #7df2ff;
+    border-radius:13px;
+    color:#f7f9ff;
+    filter:drop-shadow(0 0 18px #46b6ff88);
+    animation:mindbop-phone-turn 2.2s cubic-bezier(.55,.05,.3,1) infinite;
+  }
+  .mobile-landscape-phone>svg:last-child{
+    position:absolute;
+    inset:0;
+    width:118px;
+    height:118px;
+    color:#7df2ff;
+    opacity:.72;
+    animation:mindbop-rotate-hint 2.2s ease-in-out infinite;
+  }
+  .mobile-landscape-gate strong{font-size:clamp(28px,8vw,42px);line-height:1.05;letter-spacing:-.04em}
+  .mobile-landscape-gate p{max-width:340px;margin:14px 0 8px;color:#cbd7ed;font-size:15px;line-height:1.5}
+  .mobile-landscape-gate small{color:#7df2ff;font-size:12px;font-weight:800}
+}
+@keyframes mindbop-phone-turn{
+  0%,18%{transform:rotate(0deg) scale(1)}
+  48%,82%{transform:rotate(90deg) scale(.94)}
+  100%{transform:rotate(90deg) scale(.94)}
+}
+@keyframes mindbop-rotate-hint{0%,20%{opacity:.22;transform:rotate(-18deg)}50%,82%{opacity:.8;transform:rotate(22deg)}100%{opacity:.2;transform:rotate(22deg)}}
+@media (prefers-reduced-motion:reduce){
+  .mobile-landscape-phone>svg{animation:none!important}
+  .mobile-landscape-phone>svg:first-child{transform:rotate(90deg)}
+}
+
 /* MindBop Arena — Phase 1 verified multiplayer movement range. */
 .arena-game{position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#080d22;color:#fff}
 .arena-game canvas{display:block;width:100%;height:100%;touch-action:none}
