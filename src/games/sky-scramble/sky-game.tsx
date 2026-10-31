@@ -1,4 +1,5 @@
 "use client";
+import { RotateGate } from "@/components/rotate-gate";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
@@ -121,6 +122,7 @@ export function SkyScrambleGame({
     );
   }
   return (
+    <RotateGate game="Sky Scramble">
     <section className="sky-game">
       <SkyViewport game={game} id={id} />
       <MobileLandscapeGate game="Sky Scramble" />
@@ -230,5 +232,6 @@ export function SkyScrambleGame({
         <button onClick={leave}>Leave</button>
       </footer>
     </section>
+    </RotateGate>
   );
 }

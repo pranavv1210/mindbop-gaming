@@ -7,6 +7,7 @@ import { MobileLandscapeGate } from "@/components/mobile-landscape-gate";
 import { HERO_IDS, HEROES, TEAM_NAMES, WEAPONS, WEAPON_IDS, type HeroId } from "@/arena/config";
 import { MAP_IDS, getMap } from "@/arena/maps";
 import { ArenaController, type Settings, type UiState } from "./controller";
+import { RotateGate } from "@/components/rotate-gate";
 import styles from "./arena.module.css";
 
 const DEFAULTS: Settings = { sensitivity: 1, fov: 78, volume: 0.6, quality: "auto" };
@@ -130,6 +131,7 @@ export default function ArenaGame() {
   const board = (team: 0 | 1) => rosterSorted.filter((p) => p.team === team);
 
   return (
+    <RotateGate game="MindBop Arena">
     <main className={`${styles.arena} ${playing ? styles.live : ""}`} data-team={teamName}>
       <canvas ref={canvasRef} className={styles.canvas} aria-label="MindBop Arena first-person combat map" />
       <MobileLandscapeGate game="MindBop Arena" />
@@ -291,5 +293,6 @@ export default function ArenaGame() {
         </>
       )}
     </main>
+    </RotateGate>
   );
 }

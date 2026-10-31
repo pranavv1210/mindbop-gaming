@@ -4624,3 +4624,13 @@ html [data-game] .button-primary{background:var(--violet);color:var(--accent-ink
 html [data-game] .button-primary:hover:not(:disabled){background:var(--violet-dark)}
 [data-game] button:focus-visible,[data-game] input:focus-visible,[data-game] textarea:focus-visible,[data-game] select:focus-visible{outline-color:var(--violet)}
 [data-game] textarea:focus,[data-game] input:focus{border-color:var(--violet)}
+
+/* ---- Rotate-your-phone gate (landscape-only games on phones) ---- */
+.rotate-gate{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px;text-align:center;background:rgba(8,10,20,.97);color:#f4f6ff;touch-action:none}
+.rotate-gate h2{margin:0;font-size:26px;color:#fff}
+.rotate-gate p{max-width:320px;margin:0;color:#c3cadf;line-height:1.5}
+.rotate-gate small{max-width:300px;color:#8e98b6}
+.rotate-gate-phone{position:relative;display:grid;place-items:center;margin-bottom:8px;color:#fff;animation:rotate-hint 2.4s ease-in-out infinite}
+.rotate-gate-phone svg:last-child{position:absolute;right:-26px;top:-8px;color:var(--violet)}
+@keyframes rotate-hint{0%,25%{transform:rotate(0)}60%,85%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){.rotate-gate-phone{animation:none}}
