@@ -1,0 +1,71 @@
+name: StreakKeeper
+
+on:
+  schedule:
+    # 00:10 IST (18:40 UTC on the previous day)
+    - cron: "40 18 * * *"
+    # Backup run: 12:10 IST (06:40 UTC)
+    - cron: "40 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: streakkeeper-main
+  cancel-in-progress: false
+
+jobs:
+  daily-heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Record today's transparent heartbeat
+        shell: bash
+        run: |
+          set -euo pipefail
+          export TZ=Asia/Kolkata
+          TODAY="$(date +%F)"
+          LOG="streakkeeper/activity.md"
+
+          mkdir -p streakkeeper
+          touch "$LOG"
+
+          if grep -Fq "$TODAY" "$LOG"; then
+            echo "A heartbeat for $TODAY (IST) already exists; nothing to do."
+            exit 0
+          fi
+
+          printf '\n- %s — Automated StreakKeeper heartbeat. Add a real engineering note whenever you have one.\n' "$TODAY" >> "$LOG"
+
+          git config user.name "pranavv1210"
+          git config user.email "168800261+pranavv1210@users.noreply.github.com"
+          git add "$LOG"
+          git commit -m "[StreakKeeper] daily heartbeat $TODAY"
+
+          # Retry once after syncing if another push reaches main first.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Heartbeat pushed successfully for $TODAY (IST)."
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Push attempt $attempt failed; syncing main and retrying."
+              git pull --rebase origin main
+            fi
+          done
+
+          echo "Unable to push heartbeat after 3 attempts."
+          exit 1
+
+      - name: Explain contribution identity
+        if: always()
+        run: |
+          echo "Commits use the account's GitHub noreply address."
+          echo "GitHub must associate that address with the account for the contribution graph to count."
